@@ -1,0 +1,2086 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PROTEIN VAULT — Keto Recipe Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0d0b;
+    --bg2: #161410;
+    --bg3: #1d1a15;
+    --card: #201e18;
+    --card2: #272420;
+    --border: #2e2a22;
+    --gold: #c8953a;
+    --gold2: #e8b05a;
+    --gold3: #f5c97a;
+    --red: #c44a3a;
+    --red2: #e05a48;
+    --green: #4a8c5c;
+    --green2: #5aaa6e;
+    --text: #f0ead8;
+    --text2: #b8ad98;
+    --text3: #7a7060;
+    --accent: #c8953a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 2rem;
+    letter-spacing: 0.1em;
+    color: var(--gold2);
+    text-shadow: 0 0 30px rgba(200,149,58,0.3);
+  }
+  .logo span { color: var(--text3); font-size: 1.1rem; }
+
+  /* NAV TABS */
+  .nav {
+    display: flex;
+    gap: 0.25rem;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    overflow-x: auto;
+  }
+  .nav-btn {
+    background: none;
+    border: none;
+    color: var(--text3);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.9rem 1.25rem;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .nav-btn:hover { color: var(--text2); }
+  .nav-btn.active { color: var(--gold2); border-bottom-color: var(--gold2); }
+  .badge {
+    background: var(--gold);
+    color: #000;
+    border-radius: 10px;
+    padding: 0.1rem 0.4rem;
+    font-size: 0.65rem;
+    margin-left: 0.35rem;
+    font-weight: 700;
+  }
+  .badge.red { background: var(--red); color: #fff; }
+
+  /* VIEWS */
+  .view { display: none; padding: 2rem; max-width: 1400px; margin: 0 auto; }
+  .view.active { display: block; }
+
+  /* RECIPE GRID */
+  .section-title {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 1.6rem;
+    letter-spacing: 0.08em;
+    color: var(--text2);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .recipe-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+
+  .recipe-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .recipe-card:hover { border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+  .recipe-card.selected { border-color: var(--gold2); background: #2a2519; }
+  .recipe-card.selected::before {
+    content: '✓';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: var(--gold2);
+    color: #000;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    z-index: 2;
+  }
+
+  .card-emoji {
+    background: var(--bg3);
+    padding: 1.5rem;
+    text-align: center;
+    font-size: 2.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .card-body { padding: 1rem; }
+  .card-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text);
+    margin-bottom: 0.35rem;
+    line-height: 1.3;
+  }
+  .card-origin {
+    font-size: 0.75rem;
+    color: var(--gold);
+    margin-bottom: 0.75rem;
+    font-weight: 300;
+    font-style: italic;
+  }
+  .card-macros {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.75rem;
+  }
+  .macro-pill {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.7rem;
+    color: var(--text2);
+    font-weight: 600;
+  }
+  .macro-pill.protein { border-color: var(--gold); color: var(--gold2); }
+  .card-tags {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+  .tag {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.15rem 0.45rem;
+    font-size: 0.65rem;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .tag.carnivore { border-color: var(--red); color: var(--red2); }
+  .tag.keto { border-color: #4a6a8c; color: #6a9ac0; }
+  .tag.hiprotein { border-color: var(--gold); color: var(--gold2); }
+
+  .card-note {
+    margin-top: 0.75rem;
+    padding: 0.5rem;
+    background: var(--bg);
+    border-left: 2px solid var(--gold);
+    border-radius: 0 4px 4px 0;
+    font-size: 0.75rem;
+    color: var(--text2);
+    font-style: italic;
+  }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--gold);
+    color: #000;
+    border: none;
+    border-radius: 6px;
+    padding: 0.6rem 1.2rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.02em;
+  }
+  .btn:hover { background: var(--gold2); transform: translateY(-1px); }
+  .btn:active { transform: translateY(0); }
+  .btn.btn-outline {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text2);
+  }
+  .btn.btn-outline:hover { border-color: var(--gold); color: var(--gold2); background: none; }
+  .btn.btn-red { background: var(--red); color: #fff; }
+  .btn.btn-red:hover { background: var(--red2); }
+  .btn.btn-green { background: var(--green); color: #fff; }
+  .btn.btn-green:hover { background: var(--green2); }
+  .btn.btn-sm { padding: 0.4rem 0.8rem; font-size: 0.75rem; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  /* TOOLBAR */
+  .toolbar {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .toolbar-right { margin-left: auto; display: flex; gap: 0.5rem; }
+
+  /* SHOPPING LIST */
+  .shopping-container { max-width: 700px; }
+  .shopping-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .shopping-recipes {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+  .recipe-chip {
+    background: var(--card);
+    border: 1px solid var(--gold);
+    border-radius: 20px;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.78rem;
+    color: var(--gold2);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .shopping-section { margin-bottom: 1.5rem; }
+  .shopping-section-title {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 0.9rem;
+    letter-spacing: 0.1em;
+    color: var(--text3);
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .shopping-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0.75rem;
+    border-radius: 6px;
+    transition: all 0.15s;
+    border: 1px solid transparent;
+  }
+  .shopping-item:hover { background: var(--card); border-color: var(--border); }
+  .shopping-item.have-it { opacity: 0.4; }
+  .shopping-item.have-it .item-name { text-decoration: line-through; }
+
+  .item-check {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .item-check:hover { border-color: var(--green); }
+  .shopping-item.have-it .item-check {
+    background: var(--green);
+    border-color: var(--green);
+  }
+  .item-name { flex: 1; font-size: 0.9rem; }
+  .item-amount { font-size: 0.8rem; color: var(--text3); }
+  .item-recipes { font-size: 0.68rem; color: var(--gold); font-style: italic; }
+
+  /* RECIPE DETAIL */
+  .recipe-detail { max-width: 800px; }
+  .detail-header {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .detail-emoji { font-size: 4rem; flex-shrink: 0; }
+  .detail-title {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 2.5rem;
+    letter-spacing: 0.05em;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 0.35rem;
+  }
+  .detail-origin { color: var(--gold); font-style: italic; margin-bottom: 0.75rem; }
+  .detail-macros { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+  .macro-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    text-align: center;
+    min-width: 70px;
+  }
+  .macro-box .val { font-family: 'Bebas Neue', cursive; font-size: 1.4rem; color: var(--gold2); }
+  .macro-box .label { font-size: 0.65rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; }
+  .macro-box.protein { border-color: var(--gold); }
+
+  .detail-section {
+    margin-bottom: 2rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .detail-section-header {
+    background: var(--bg3);
+    padding: 0.75rem 1.25rem;
+    font-family: 'Bebas Neue', cursive;
+    font-size: 1rem;
+    letter-spacing: 0.1em;
+    color: var(--text2);
+    border-bottom: 1px solid var(--border);
+  }
+  .detail-section-body { padding: 1.25rem; }
+
+  .ingredient-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+  }
+  .ingredient-item:last-child { border-bottom: none; }
+  .ingredient-amount { color: var(--gold); font-weight: 600; }
+
+  .step-item {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+  .step-num {
+    background: var(--gold);
+    color: #000;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .step-title { font-weight: 600; margin-bottom: 0.25rem; font-size: 0.9rem; }
+  .step-body { color: var(--text2); font-size: 0.87rem; line-height: 1.6; }
+
+  /* NOTE SECTION */
+  .note-area {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.75rem;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    resize: vertical;
+    min-height: 80px;
+    margin-bottom: 0.75rem;
+  }
+  .note-area:focus { outline: none; border-color: var(--gold); }
+  .existing-note {
+    background: var(--bg3);
+    border-left: 3px solid var(--gold);
+    padding: 0.75rem 1rem;
+    border-radius: 0 6px 6px 0;
+    font-style: italic;
+    color: var(--text2);
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+    white-space: pre-wrap;
+  }
+
+  /* DO NOT MAKE LIST */
+  .dnm-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+    background: var(--card);
+    opacity: 0.7;
+  }
+  .dnm-title { font-weight: 600; color: var(--text2); text-decoration: line-through; }
+  .dnm-meta { font-size: 0.78rem; color: var(--text3); margin-top: 0.15rem; }
+  .dnm-reason { font-size: 0.78rem; color: var(--red); font-style: italic; margin-top: 0.2rem; }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 2rem;
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal-title {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 1.5rem;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.5rem;
+    color: var(--red2);
+  }
+  .modal-body { color: var(--text2); margin-bottom: 1.5rem; font-size: 0.9rem; line-height: 1.6; }
+  .modal-label { font-size: 0.8rem; font-weight: 600; color: var(--text2); margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .modal-input {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.6rem 0.75rem;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    margin-bottom: 1.25rem;
+  }
+  .modal-input:focus { outline: none; border-color: var(--red); }
+  .modal-actions { display: flex; gap: 0.75rem; justify-content: flex-end; }
+
+  /* FILTER BUTTONS */
+  .filter-btn {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 0.35rem 0.9rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text3);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .filter-btn:hover { border-color: var(--gold); color: var(--gold2); }
+  .filter-btn.active { background: var(--gold); color: #000; border-color: var(--gold); }
+
+  /* BACK BTN */
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--text3);
+    font-size: 0.83rem;
+    cursor: pointer;
+    margin-bottom: 1.5rem;
+    transition: color 0.15s;
+    background: none;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .back-btn:hover { color: var(--gold2); }
+
+  /* EMPTY STATES */
+  .empty {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text3);
+  }
+  .empty .icon { font-size: 3rem; margin-bottom: 1rem; }
+  .empty h3 { font-family: 'Bebas Neue', cursive; font-size: 1.5rem; letter-spacing: 0.05em; color: var(--text2); margin-bottom: 0.5rem; }
+
+  .info-bar {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    font-size: 0.82rem;
+    color: var(--text3);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  @media (max-width: 600px) {
+    .view { padding: 1rem; }
+    .detail-title { font-size: 1.8rem; }
+    .detail-header { gap: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">PROTEIN VAULT <span>/ Keto Recipe Manager</span></div>
+  <div style="font-size:0.75rem; color:var(--text3)">High Protein · Keto · Carnivore</div>
+</div>
+
+<nav class="nav">
+  <button class="nav-btn active" onclick="showView('vault')">📦 Vault <span class="badge" id="vault-count">0</span></button>
+  <button class="nav-btn" onclick="showView('shop')">🛒 Shop List <span class="badge" id="selected-count">0</span></button>
+  <button class="nav-btn" onclick="showView('dnm')">🚫 Do Not Make <span class="badge red" id="dnm-count">0</span></button>
+</nav>
+
+<!-- VAULT VIEW -->
+<div class="view active" id="view-vault">
+  <div class="toolbar">
+    <div class="section-title" style="margin:0; flex:1">Recipe Collection</div>
+    <div class="toolbar-right">
+      <button class="btn btn-outline btn-sm" onclick="clearSelection()">Clear Selection</button>
+      <button class="btn btn-sm" onclick="goToShop()" id="shop-btn" disabled>🛒 Build Shopping List</button>
+    </div>
+  </div>
+  <div style="display:flex; gap:0.4rem; flex-wrap:wrap; margin-bottom:1rem;">
+    <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
+    <button class="filter-btn" onclick="setFilter('carnivore', this)">🥩 Carnivore</button>
+    <button class="filter-btn" onclick="setFilter('keto', this)">⚡ Keto</button>
+    <button class="filter-btn" onclick="setFilter('high-protein', this)">💪 High Protein</button>
+    <button class="filter-btn" onclick="setFilter('salad', this)">🥗 Salads</button>
+    <button class="filter-btn" onclick="setFilter('bread', this)">☁️ Bread/Wraps</button>
+    <button class="filter-btn" onclick="setFilter('sweet', this)">🍫 Sweets</button>
+  </div>
+  <div class="info-bar">💡 Click recipes to select them for shopping. Click the recipe name/emoji to view full details.</div>
+  <div class="recipe-grid" id="recipe-grid"></div>
+</div>
+
+<!-- DETAIL VIEW -->
+<div class="view" id="view-detail">
+  <button class="back-btn" onclick="showView('vault')">← Back to Vault</button>
+  <div id="detail-content"></div>
+</div>
+
+<!-- SHOP VIEW -->
+<div class="view" id="view-shop">
+  <button class="back-btn" onclick="showView('vault')">← Back to Vault</button>
+  <div class="shopping-container">
+    <div class="shopping-header">
+      <div>
+        <div class="section-title" style="margin:0">Shopping List</div>
+        <div style="font-size:0.82rem; color:var(--text3); margin-top:0.25rem">Check off what you already have</div>
+      </div>
+      <div style="display:flex; gap:0.5rem; flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm" onclick="printList()">🖨 Print</button>
+        <button class="btn btn-outline btn-sm" onclick="copyList()">📋 Copy</button>
+      </div>
+    </div>
+    <div id="selected-recipes-display" class="shopping-recipes"></div>
+    <div id="shopping-list-content"></div>
+  </div>
+</div>
+
+<!-- DNM VIEW -->
+<div class="view" id="view-dnm">
+  <div class="section-title">Do Not Make List</div>
+  <div style="font-size:0.85rem; color:var(--text3); margin-bottom:1.5rem">Recipes you've tried and won't revisit. Title and origin are kept for reference.</div>
+  <div id="dnm-list"></div>
+</div>
+
+<!-- DELETE MODAL -->
+<div class="modal-overlay" id="delete-modal">
+  <div class="modal">
+    <div class="modal-title">🚫 Move to Do Not Make?</div>
+    <div class="modal-body" id="delete-modal-body"></div>
+    <div class="modal-label">Reason (optional)</div>
+    <input type="text" class="modal-input" id="delete-reason" placeholder="e.g. Too salty, didn't like texture..." />
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn btn-red" onclick="confirmDelete()">Move to Do Not Make</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const INITIAL_RECIPES = [
+  {
+    id: 'r1',
+    title: 'Viral Chocolate Banana Brownies',
+    origin: '@fillingmeals / MacroMagicStef (YouTube)',
+    emoji: '🍫',
+    tags: ['high-protein', 'keto-friendly'],
+    macros: { cal: 120, protein: 10, carbs: 13, fat: 3 },
+    servings: 9,
+    ingredients: [
+      { name: 'Ripe bananas', amount: '4 medium (350g)' },
+      { name: 'Eggs', amount: '3 large' },
+      { name: 'Cottage cheese', amount: '250g' },
+      { name: 'Unsweetened cocoa powder', amount: '20g (3 tbsp)' },
+      { name: 'Maple syrup', amount: '30g (2 tbsp)' },
+      { name: 'Baking powder', amount: '2 tsp' }
+    ],
+    prep: [
+      { title: 'Preheat Oven', body: 'Preheat oven to 180°C (350°F). Line a 20×20cm (8×8 inch) baking pan with parchment paper.' },
+      { title: 'Blend All Ingredients', body: 'Add bananas, eggs, cottage cheese, cocoa powder, maple syrup, and baking powder to a blender. Blend until completely smooth — no lumps.' },
+      { title: 'Bake', body: 'Pour batter into lined pan. Spread evenly. Bake for 45 minutes until set in the center.' },
+      { title: 'Cool & Chill', body: 'Let cool to room temperature, then refrigerate at least 1 hour before slicing. Chilling is essential — they firm up beautifully into proper fudgy brownies.' }
+    ],
+    notes: ''
+  },
+  {
+    id: 'r2',
+    title: 'Carnivore Flatbread (2-Ingredient)',
+    origin: '@steakandbuttergal (TikTok/YouTube)',
+    emoji: '🫓',
+    tags: ['carnivore', 'keto'],
+    macros: { cal: 180, protein: 22, carbs: 1, fat: 10 },
+    servings: 2,
+    ingredients: [
+      { name: 'Eggs', amount: '3 large' },
+      { name: 'Cream cheese', amount: '60g (2 oz)' },
+      { name: 'Salt', amount: 'pinch' }
+    ],
+    prep: [
+      { title: 'Blend', body: 'Blend eggs, cream cheese, and salt until completely smooth.' },
+      { title: 'Cook', body: 'Pour onto a parchment-lined baking sheet in a thin, even layer. Bake at 190°C (375°F) for 10-12 minutes until golden and set.' },
+      { title: 'Cool & Use', body: 'Let cool — it firms up. Use as a wrap, pizza base, or sandwich bread. Add sesame seeds on top before baking for texture.' }
+    ],
+    notes: ''
+  },
+  {
+    id: 'r3',
+    title: 'Carnivore Ice Cream',
+    origin: '@steakandbuttergal (TikTok/YouTube)',
+    emoji: '🍨',
+    tags: ['carnivore', 'keto'],
+    macros: { cal: 320, protein: 8, carbs: 3, fat: 30 },
+    servings: 4,
+    ingredients: [
+      { name: 'Heavy whipping cream', amount: '250g (1 cup)' },
+      { name: 'Cream cheese', amount: '50g (2 oz)' },
+      { name: 'Eggs', amount: '5 large' },
+      { name: 'Beef gelatin', amount: '10g (1 tbsp)' },
+      { name: 'Butter', amount: '2 tbsp' },
+      { name: 'Salt', amount: 'pinch' },
+      { name: 'Honey (optional)', amount: '1 tsp' },
+      { name: 'Bacon bits (optional topping)', amount: '2 strips cooked' }
+    ],
+    prep: [
+      { title: 'Whip Cream', body: 'Whip heavy cream until stiff peaks form. Set aside.' },
+      { title: 'Make Base', body: 'Bloom gelatin in 2 tbsp cold water 5 mins. Blend eggs, cream cheese, softened butter, salt, and honey until smooth. Melt gelatin over low heat and whisk into egg mixture.' },
+      { title: 'Fold & Freeze', body: 'Gently fold whipped cream into the egg mixture until combined. Pour into a container and freeze at least 4 hours or overnight.' },
+      { title: 'Serve', body: 'Let sit at room temp 5 minutes before scooping. Top with crumbled bacon bits for a salty crunch.' }
+    ],
+    notes: ''
+  },
+  {
+    id: 'r4',
+    title: 'Homemade Starbucks Egg Bites',
+    origin: '@iricksnacks / Keto Kiick (TikTok)',
+    emoji: '🥚',
+    tags: ['high-protein', 'keto'],
+    macros: { cal: 140, protein: 14, carbs: 2, fat: 9 },
+    servings: 6,
+    ingredients: [
+      { name: 'Eggs', amount: '4 large' },
+      { name: 'Swiss & Gruyère cheese blend', amount: '1 cup shredded' },
+      { name: 'Cottage cheese (low-fat)', amount: '1 cup' },
+      { name: 'Bacon crumbles', amount: '4 strips cooked' },
+      { name: 'Salt, pepper, garlic powder', amount: 'to taste' }
+    ],
+    prep: [
+      { title: 'Blend Base', body: 'Add eggs, cottage cheese, shredded cheese, salt, pepper, and garlic powder to a blender. Blend until smooth and creamy.' },
+      { title: 'Prepare Molds', body: 'Spray a silicone egg bite mold or muffin tin with cooking spray. Add bacon crumbles to each cup.' },
+      { title: 'Fill & Bake', body: 'Pour egg mixture over bacon. Bake at 165°C (325°F) for 25-30 minutes using the sous-vide style: place mold in a larger baking dish with ½ inch of hot water (water bath). Bake until set.' },
+      { title: 'Cool', body: 'Let cool 5 mins before popping out. Store in fridge up to 5 days.' }
+    ],
+    notes: ''
+  },
+  {
+    id: 'r5',
+    title: 'Parmesan Chicken Nuggets (3 Ingredients)',
+    origin: '@ketosnackz (TikTok)',
+    emoji: '🍗',
+    tags: ['high-protein', 'keto'],
+    macros: { cal: 210, protein: 32, carbs: 2, fat: 8 },
+    servings: 3,
+    ingredients: [
+      { name: 'Raw chicken breast', amount: '170g (6 oz)' },
+      { name: 'Grated parmesan', amount: '1 cup' },
+      { name: 'Egg', amount: '1 large' },
+      { name: 'Garlic powder', amount: '½ tsp' },
+      { name: 'Onion powder', amount: '½ tsp' },
+      { name: 'Salt & paprika', amount: '¼ tsp each' }
+    ],
+    prep: [
+      { title: 'Blend Everything', body: 'Add chicken breast, parmesan, egg, and all seasonings to a blender or food processor. Blend until it forms a thick paste.' },
+      { title: 'Shape Nuggets', body: 'Using wet hands, shape portions of the mixture into nugget shapes.' },
+      { title: 'Air Fry', body: 'Spray air fryer basket. Air fry at 200°C (400°F) for 10 minutes, flipping halfway, until golden and cooked through.' },
+      { title: 'Serve', body: 'Dip in ranch, sugar-free buffalo sauce, or carnivore mayo. Crispy, salty, and absolutely addictive.' }
+    ],
+    notes: ''
+  },
+  {
+    id: 'r6',
+    title: 'High Protein Cottage Cheese Pancakes',
+    origin: 'All Day I Dream About Food / Viral Keto Community',
+    emoji: '🥞',
+    tags: ['high-protein', 'keto'],
+    macros: { cal: 180, protein: 20, carbs: 4, fat: 9 },
+    servings: 4,
+    ingredients: [
+      { name: 'Cottage cheese', amount: '1 cup (225g)' },
+      { name: 'Eggs', amount: '3 large' },
+      { name: 'Almond flour', amount: '¼ cup' },
+      { name: 'Baking powder', amount: '1 tsp' },
+      { name: 'Vanilla extract', amount: '1 tsp' },
+      { name: 'Sweetener (allulose/monk fruit)', amount: '2 tbsp' },
+      { name: 'Butter for pan', amount: '1 tbsp' }
+    ],
+    prep: [
+      { title: 'Blend', body: 'Add all ingredients (except butter) to a blender. Blend until smooth. Let batter rest 3-5 mins — it will thicken slightly.' },
+      { title: 'Cook', body: 'Heat butter in a non-stick skillet over medium-low heat. Pour ¼ cup portions of batter. Cook 3-4 minutes until bubbles form and edges are set. Flip and cook 2 more minutes.' },
+      { title: 'Serve', body: 'Stack and serve with sugar-free maple syrup, fresh berries, or compound butter. These are fluffy, not thin — blending the cottage cheese makes them incredibly smooth.' }
+    ],
+    notes: ''
+  },
+  {
+    id: 'r7',
+    title: 'Sheet Pan Cheeseburger Patties',
+    origin: '@healthyu_dietitian / Viral Keto Community',
+    emoji: '🍔',
+    tags: ['high-protein', 'keto'],
+    macros: { cal: 185, protein: 26, carbs: 4, fat: 8 },
+    servings: 7,
+    ingredients: [
+      { name: 'Extra-lean ground beef', amount: '500g (1 lb)' },
+      { name: 'Zucchini, finely diced', amount: '1 large' },
+      { name: 'Mushrooms, diced', amount: '¾ cup' },
+      { name: 'Onion, diced', amount: '1 large' },
+      { name: 'Eggs', amount: '2 large' },
+      { name: 'Marinara sauce', amount: '½ cup' },
+      { name: 'Salt, pepper, garlic powder', amount: 'to taste' },
+      { name: 'Cheddar cheese slices', amount: '7 slices' }
+    ],
+    prep: [
+      { title: 'Mix', body: 'Combine ground beef, diced zucchini, mushrooms, onion, eggs, marinara, and seasonings in a large bowl. Mix well — the veggies add moisture and volume while slashing calories.' },
+      { title: 'Shape & Bake', body: 'Form into 7 equal patties on a parchment-lined sheet pan. Bake at 200°C (400°F) for 20 minutes.' },
+      { title: 'Add Cheese', body: 'Add a cheese slice to each patty and return to oven for 2-3 minutes until melted.' },
+      { title: 'Meal Prep', body: 'These keep in the fridge 5 days and freeze great. Reheat in air fryer 3-4 mins. Serve on lettuce wraps or with pickles, mustard.' }
+    ],
+    notes: ''
+  },
+  {
+    id: 'r8',
+    title: 'Boursin Beef & Cauliflower Bowl',
+    origin: '@madelainerascan / Low-Carb Keto Community',
+    emoji: '🥩',
+    tags: ['keto', 'high-protein'],
+    macros: { cal: 390, protein: 38, carbs: 8, fat: 22 },
+    servings: 2,
+    ingredients: [
+      { name: 'Ground beef (80/20)', amount: '400g' },
+      { name: 'Cauliflower florets', amount: '2 cups, chopped' },
+      { name: 'Broccoli florets', amount: '1 cup' },
+      { name: 'Boursin cheese (garlic herb)', amount: '2 tbsp' },
+      { name: 'Salt, pepper, garlic powder', amount: 'to taste' }
+    ],
+    prep: [
+      { title: 'Roast Veggies', body: 'Toss cauliflower and broccoli with olive oil, salt, and pepper. Roast at 200°C (400°F) for 20-22 minutes until caramelized.' },
+      { title: 'Brown Beef', body: 'Season ground beef with salt, pepper, and garlic powder. Brown in a skillet over high heat, breaking into chunks. Drain excess fat.' },
+      { title: 'Combine', body: 'Add roasted veggies to the beef in the skillet. Remove from heat. Stir in Boursin cheese — the residual heat melts it into a creamy sauce.' },
+      { title: 'Serve', body: 'Divide into bowls. Meal preps perfectly for 4 days — reheat with a splash of water.' }
+    ],
+    notes: ''
+  },
+  {
+    id: 'r9',
+    title: 'Baked Feta Eggs',
+    origin: 'Viral TikTok / @ohioketomama',
+    emoji: '🍳',
+    tags: ['keto', 'high-protein'],
+    macros: { cal: 290, protein: 21, carbs: 5, fat: 21 },
+    servings: 2,
+    ingredients: [
+      { name: 'Feta cheese block', amount: '150g' },
+      { name: 'Cherry tomatoes', amount: '1 cup' },
+      { name: 'Eggs', amount: '4 large' },
+      { name: 'Olive oil', amount: '2 tbsp' },
+      { name: 'Fresh basil or oregano', amount: 'handful' },
+      { name: 'Red pepper flakes', amount: '½ tsp' },
+      { name: 'Salt & black pepper', amount: 'to taste' }
+    ],
+    prep: [
+      { title: 'Set Up', body: 'Preheat oven to 200°C (400°F). Place feta block in center of a small baking dish. Surround with cherry tomatoes. Drizzle everything with olive oil. Season.' },
+      { title: 'First Bake', body: 'Bake 15 minutes until tomatoes start to burst and feta softens.' },
+      { title: 'Add Eggs', body: 'Remove from oven. Crumble/spread the feta with a fork. Crack eggs into the dish around the feta and tomatoes.' },
+      { title: 'Finish', body: 'Return to oven and bake 8-10 more minutes until egg whites are set but yolks still jammy. Top with fresh basil and red pepper flakes.' }
+    ],
+    notes: ''
+  },
+  {
+    id: 'r10',
+    title: 'High-Protein Keto Frosty',
+    origin: 'All Day I Dream About Food (alldayidreamaboutfood.com)',
+    emoji: '🥤',
+    tags: ['high-protein', 'keto'],
+    macros: { cal: 180, protein: 22, carbs: 4, fat: 8 },
+    servings: 2,
+    ingredients: [
+      { name: 'Chocolate protein powder', amount: '2 scoops (60g)' },
+      { name: 'Heavy whipping cream', amount: '¼ cup' },
+      { name: 'Almond milk unsweetened', amount: '½ cup' },
+      { name: 'Cream cheese', amount: '2 tbsp softened' },
+      { name: 'Cocoa powder unsweetened', amount: '1 tbsp' },
+      { name: 'Sweetener (allulose)', amount: '2 tbsp' },
+      { name: 'Ice', amount: '1.5 cups' }
+    ],
+    prep: [
+      { title: 'Blend', body: 'Add all ingredients to a high-speed blender. Blend until thick and smooth — like a Wendy\'s Frosty. Add more ice for thicker consistency.' },
+      { title: 'Taste & Adjust', body: 'Taste for sweetness. Add more sweetener if desired. The cocoa powder deepens the chocolate flavor.' },
+      { title: 'Serve', body: 'Pour into glasses and serve immediately. 22g protein, only 4g net carbs per serving. Doubles as a meal replacement.' }
+    ],
+    notes: ''
+  },
+  {
+    id: 'r11',
+    title: 'Carnivore Cheesecake with Meat Crust',
+    origin: '@steakandbuttergal (TikTok/YouTube)',
+    emoji: '🎂',
+    tags: ['carnivore', 'keto'],
+    macros: { cal: 380, protein: 18, carbs: 2, fat: 33 },
+    servings: 8,
+    ingredients: [
+      { name: 'Cream cheese', amount: '450g (16 oz), softened' },
+      { name: 'Eggs', amount: '3 large' },
+      { name: 'Heavy cream', amount: '½ cup' },
+      { name: 'Sweetener (allulose)', amount: '⅓ cup' },
+      { name: 'Vanilla extract', amount: '1 tsp' },
+      { name: 'Ground pork rinds (crust)', amount: '1 cup crushed' },
+      { name: 'Butter (for crust)', amount: '3 tbsp melted' }
+    ],
+    prep: [
+      { title: 'Make Crust', body: 'Mix crushed pork rinds with melted butter. Press firmly into bottom of a 9-inch springform pan. Refrigerate 15 minutes.' },
+      { title: 'Make Filling', body: 'Beat cream cheese until fluffy. Add sweetener, mix. Add eggs one at a time. Add heavy cream and vanilla — mix just until combined. Don\'t overmix.' },
+      { title: 'Bake (Water Bath)', body: 'Wrap outside of pan in foil. Pour filling over crust. Place in a larger baking dish with 1 inch hot water. Bake at 160°C (325°F) for 50-55 minutes until center barely jiggles.' },
+      { title: 'Cool & Set', body: 'Turn off oven, crack door, let sit 1 hour. Transfer to fridge and chill at least 4 hours or overnight. The water bath prevents cracking.' }
+    ],
+    notes: ''
+  },
+  {
+    id: 'r12',
+    title: 'Chicken Shawarma Sheet Pan',
+    origin: '@shredhappens / Courtney Luna style',
+    emoji: '🌯',
+    tags: ['high-protein', 'keto'],
+    macros: { cal: 310, protein: 42, carbs: 6, fat: 12 },
+    servings: 4,
+    ingredients: [
+      { name: 'Bone-in skin-on chicken thighs', amount: '4 pieces (about 750g)' },
+      { name: 'Olive oil', amount: '3 tbsp' },
+      { name: 'Garlic powder', amount: '1 tsp' },
+      { name: 'Cumin', amount: '1 tsp' },
+      { name: 'Paprika (smoked)', amount: '1 tsp' },
+      { name: 'Turmeric', amount: '½ tsp' },
+      { name: 'Cinnamon', amount: '¼ tsp' },
+      { name: 'Salt & black pepper', amount: 'to taste' },
+      { name: 'Greek yogurt', amount: '½ cup (sauce)' },
+      { name: 'Fresh mint & jalapeño', amount: 'handful each (sauce)' },
+      { name: 'Lemon juice', amount: '½ lemon' }
+    ],
+    prep: [
+      { title: 'Marinate', body: 'Combine olive oil and all spices. Coat chicken thighs thoroughly. Marinate minimum 2 hours, ideally overnight in the fridge.' },
+      { title: 'Bake', body: 'Bring chicken to room temp 20 mins before baking. Place on wire rack over baking sheet. Bake at 215°C (420°F) for 35-40 minutes until skin is deeply golden and crispy.' },
+      { title: 'Make Sauce', body: 'Blend Greek yogurt, fresh mint, scallions, jalapeño, olive oil, lemon juice, salt and pepper until smooth.' },
+      { title: 'Serve', body: 'Plate chicken over cauliflower rice or lettuce. Drizzle sauce generously. The sauce makes or breaks this dish — don\'t skip it.' }
+    ],
+    notes: ''
+  },
+
+  // ── CLOUD BREAD ──────────────────────────────────────────────
+  {
+    id: 'r13',
+    title: 'Classic Cloud Bread (Base Recipe)',
+    origin: 'WholesomeYum.com / Keto community classic',
+    emoji: '☁️',
+    tags: ['keto', 'carnivore', 'high-protein'],
+    macros: { cal: 51, protein: 4, carbs: 1, fat: 4 },
+    servings: 6,
+    ingredients: [
+      { name: 'Eggs (room temp)', amount: '3 large, separated' },
+      { name: 'Cream cheese (softened)', amount: '3 tbsp (45g)' },
+      { name: 'Cream of tartar', amount: '¼ tsp' },
+      { name: 'Salt', amount: 'pinch' }
+    ],
+    prep: [
+      { title: 'Prep & Preheat', body: 'Preheat oven to 150°C (300°F). Line a baking sheet with parchment and spray with oil. Separate eggs carefully — no yolk in whites or they won\'t whip.' },
+      { title: 'Beat Whites', body: 'In a completely clean, dry bowl, beat egg whites, cream of tartar, and salt with an electric mixer until stiff peaks form (3-5 mins). The peaks should hold their shape and the bowl can be flipped upside down without falling.' },
+      { title: 'Mix Yolks', body: 'In a separate bowl, beat egg yolks and softened cream cheese until pale yellow and smooth. Add any optional flavor ingredients here (see Notes).' },
+      { title: 'Fold Together', body: 'Gently fold the yolk mixture into the whites in 3 additions. Use a spatula and fold, don\'t stir — you want to keep the air. It\'s okay if a few streaks remain.' },
+      { title: 'Bake', body: 'Scoop into 6 rounds on prepared baking sheet (about ½ cup each, shaped into bun-sized circles). Bake 25-30 minutes until golden brown.' },
+      { title: 'Cool', body: 'Cool on pan 20 mins — they firm up as they cool. Store in airtight container at room temp up to 2 days or fridge 3-4 days.' }
+    ],
+    notes: 'FLAVOR VARIATIONS (add to yolk mixture in Step 3):\n• Garlic Herb: ½ tsp garlic powder + 1 tsp dried Italian herbs\n• Everything Bagel: top with 1 tsp everything bagel seasoning before baking\n• Garlic Parmesan: ½ tsp garlic + 2 tbsp grated parmesan + rosemary\n• Scallion: fold in ¼ cup thinly sliced scallions\n• Feta & Olive: fold in 2 tbsp crumbled feta + 1 tbsp chopped black olives\n• Sweet/Dessert: add 1 tbsp sweetener + ½ tsp vanilla to yolk mix\n• Cinnamon Sugar: sweet base + ½ tsp cinnamon + brush with butter when hot\n• Sesame: top with sesame seeds + flaky salt before baking\n• Spicy: add ¼ tsp cayenne + ½ tsp smoked paprika to yolk mix'
+  },
+
+  // ── SALADS ───────────────────────────────────────────────────
+  {
+    id: 'r14',
+    title: 'Classic Keto Tuna Salad',
+    origin: 'Keto community staple',
+    emoji: '🐟',
+    tags: ['high-protein', 'keto', 'carnivore'],
+    macros: { cal: 290, protein: 30, carbs: 2, fat: 18 },
+    servings: 2,
+    ingredients: [
+      { name: 'Canned tuna in water (drained)', amount: '2 cans (5 oz each)' },
+      { name: 'Mayonnaise (full fat)', amount: '3 tbsp' },
+      { name: 'Dijon mustard', amount: '1 tsp' },
+      { name: 'Celery, finely diced', amount: '2 stalks' },
+      { name: 'Red onion, finely diced', amount: '2 tbsp' },
+      { name: 'Dill pickles, diced', amount: '2 tbsp' },
+      { name: 'Lemon juice', amount: '1 tbsp' },
+      { name: 'Fresh dill or parsley', amount: '1 tbsp chopped' },
+      { name: 'Salt & black pepper', amount: 'to taste' }
+    ],
+    prep: [
+      { title: 'Drain & Flake', body: 'Drain tuna thoroughly, pressing with a fork to remove as much liquid as possible. Flake into a bowl.' },
+      { title: 'Mix', body: 'Add mayo, mustard, celery, onion, pickles, lemon juice, and herbs. Fold together gently — don\'t overmix into mush.' },
+      { title: 'Season & Serve', body: 'Season with salt and pepper. Taste — add more lemon or mustard as needed. Serve on cloud bread, lettuce cups, cucumber slices, or stuffed in an avocado.' }
+    ],
+    notes: 'Variations: Add diced avocado for healthy fat. Swap pickle for capers for a more refined version. Add sriracha or hot sauce for heat. Use Greek yogurt instead of some mayo to boost protein. Keeps 3 days refrigerated.'
+  },
+  {
+    id: 'r15',
+    title: 'Spicy Sriracha Tuna Salad',
+    origin: 'Viral TikTok variant / @ketosnackz',
+    emoji: '🌶️',
+    tags: ['high-protein', 'keto'],
+    macros: { cal: 260, protein: 28, carbs: 3, fat: 14 },
+    servings: 2,
+    ingredients: [
+      { name: 'Canned tuna in water (drained)', amount: '2 cans (5 oz each)' },
+      { name: 'Light mayonnaise', amount: '2 tbsp' },
+      { name: 'Sriracha sauce', amount: '1-2 tbsp (to taste)' },
+      { name: 'Soy sauce or coconut aminos', amount: '1 tsp' },
+      { name: 'Sesame oil', amount: '½ tsp' },
+      { name: 'Green onions/scallions', amount: '3 stalks, sliced' },
+      { name: 'Cucumber, diced small', amount: '½ cup' },
+      { name: 'Sesame seeds', amount: '1 tsp' },
+      { name: 'Everything bagel seasoning', amount: '½ tsp (optional)' }
+    ],
+    prep: [
+      { title: 'Drain Tuna', body: 'Drain and press tuna dry. Flake into a bowl.' },
+      { title: 'Sauce', body: 'Mix mayo, sriracha, soy sauce, and sesame oil together in a small bowl.' },
+      { title: 'Combine', body: 'Toss tuna with sauce, scallions, and cucumber. Top with sesame seeds and everything bagel seasoning.' },
+      { title: 'Serve', body: 'Serve in lettuce cups, over cauliflower rice, or on cloud bread. Pairs perfectly with sliced avocado on the side.' }
+    ],
+    notes: 'The Asian-inspired twist on tuna salad. Super fast — 5 minute meal. Great as a rice bowl base if you add cauliflower rice.'
+  },
+  {
+    id: 'r16',
+    title: 'Avocado Chicken Salad',
+    origin: '@madelainerascan / Macro-friendly community',
+    emoji: '🥑',
+    tags: ['high-protein', 'keto'],
+    macros: { cal: 330, protein: 35, carbs: 5, fat: 19 },
+    servings: 3,
+    ingredients: [
+      { name: 'Cooked chicken breast, shredded', amount: '400g (about 2 large)' },
+      { name: 'Ripe avocados', amount: '2 medium' },
+      { name: 'Greek yogurt (0%)', amount: '¼ cup' },
+      { name: 'Lime juice', amount: '2 tbsp' },
+      { name: 'Garlic powder', amount: '½ tsp' },
+      { name: 'Cilantro, chopped', amount: '¼ cup' },
+      { name: 'Red onion, finely diced', amount: '3 tbsp' },
+      { name: 'Jalapeño, diced (optional)', amount: '1 small' },
+      { name: 'Salt & pepper', amount: 'to taste' }
+    ],
+    prep: [
+      { title: 'Mash Avocado', body: 'Mash avocados in a large bowl, leaving a few chunks for texture. Immediately stir in lime juice to prevent browning.' },
+      { title: 'Combine', body: 'Add shredded chicken, Greek yogurt, garlic powder, cilantro, red onion, and jalapeño. Fold gently until combined.' },
+      { title: 'Season & Serve', body: 'Season aggressively with salt and pepper. Serve in lettuce cups, stuffed in a tomato, on cloud bread, or with cucumber slices.' }
+    ],
+    notes: 'Meal prep tip: Keep chicken and avocado mixture separate until serving to avoid browning. The Greek yogurt adds creaminess AND protein without the fat of extra avocado. Madelaine Rascan style: high protein, clean, macro-tracked.'
+  },
+  {
+    id: 'r17',
+    title: 'Creamy Herb Chicken Salad',
+    origin: '@madelainerascan / Keto community',
+    emoji: '🫙',
+    tags: ['high-protein', 'keto'],
+    macros: { cal: 310, protein: 38, carbs: 3, fat: 15 },
+    servings: 3,
+    ingredients: [
+      { name: 'Rotisserie chicken, pulled', amount: '400g (white + dark)' },
+      { name: 'Cream cheese (softened)', amount: '3 tbsp' },
+      { name: 'Greek yogurt (0%)', amount: '3 tbsp' },
+      { name: 'Dijon mustard', amount: '2 tsp' },
+      { name: 'Fresh dill', amount: '2 tbsp chopped' },
+      { name: 'Fresh chives', amount: '2 tbsp chopped' },
+      { name: 'Lemon zest + juice', amount: '½ lemon' },
+      { name: 'Celery', amount: '2 stalks, diced' },
+      { name: 'Salt & cracked pepper', amount: 'generously' }
+    ],
+    prep: [
+      { title: 'Make Dressing', body: 'Beat softened cream cheese, Greek yogurt, Dijon, lemon zest, and lemon juice together until smooth and creamy.' },
+      { title: 'Combine', body: 'Toss pulled rotisserie chicken with the dressing, fresh herbs, and diced celery.' },
+      { title: 'Chill & Serve', body: 'Refrigerate 15 minutes for flavors to meld. Serve stuffed in bell pepper halves, on cloud bread, or in lettuce wraps.' }
+    ],
+    notes: 'The cream cheese dressing is the secret — it clings to the chicken differently than mayo. Using rotisserie chicken makes this a 10-minute recipe. Keeps 4 days refrigerated.'
+  },
+  {
+    id: 'r18',
+    title: 'Sara Salad (Viral Copycat)',
+    origin: 'Viral TikTok "Sara\'s Salad" trend',
+    emoji: '🥗',
+    tags: ['keto', 'high-protein'],
+    macros: { cal: 340, protein: 30, carbs: 8, fat: 20 },
+    servings: 1,
+    ingredients: [
+      { name: 'Romaine lettuce, chopped', amount: '2 cups' },
+      { name: 'Grilled chicken breast, sliced', amount: '150g' },
+      { name: 'Cherry tomatoes, halved', amount: '½ cup' },
+      { name: 'Cucumber, diced', amount: '½ cup' },
+      { name: 'Red onion, thinly sliced', amount: '2 tbsp' },
+      { name: 'Pepperoncini peppers', amount: '4-5 rings' },
+      { name: 'Feta cheese crumbles', amount: '30g' },
+      { name: 'Kalamata olives', amount: '8-10' },
+      { name: 'Olive oil', amount: '2 tbsp' },
+      { name: 'Red wine vinegar', amount: '1 tbsp' },
+      { name: 'Dried oregano', amount: '½ tsp' },
+      { name: 'Salt & pepper', amount: 'to taste' }
+    ],
+    prep: [
+      { title: 'Chop Everything', body: 'Chop romaine, dice cucumber, halve tomatoes, thinly slice red onion. Everything uniform for that perfect bite.' },
+      { title: 'Make Dressing', body: 'Whisk olive oil, red wine vinegar, oregano, salt and pepper. Taste — it should be punchy and bright.' },
+      { title: 'Assemble', body: 'Build: romaine base, then chicken, tomatoes, cucumber, red onion, pepperoncini, feta, and olives. Drizzle dressing over everything.' },
+      { title: 'Toss & Eat Immediately', body: 'Toss together and eat right away — this salad doesn\'t hold. The pepperoncini brine adds acidity that makes everything pop.' }
+    ],
+    notes: 'The original TikTok Sara Salad has ground beef but this keto version swaps to chicken. Key elements: pepperoncini + feta + red wine vinegar = the unmistakable flavor. Don\'t skip the pepperoncini — they\'re everything.'
+  },
+  {
+    id: 'r19',
+    title: 'BLT Wedge Salad with Bacon Ranch',
+    origin: 'Carnivore keto community classic',
+    emoji: '🥓',
+    tags: ['keto', 'carnivore', 'high-protein'],
+    macros: { cal: 380, protein: 22, carbs: 5, fat: 30 },
+    servings: 2,
+    ingredients: [
+      { name: 'Iceberg lettuce head', amount: '½ head, cut into wedges' },
+      { name: 'Bacon strips', amount: '6 strips, cooked crispy' },
+      { name: 'Cherry tomatoes', amount: '½ cup, halved' },
+      { name: 'Boiled eggs', amount: '2, quartered' },
+      { name: 'Blue cheese or cheddar, crumbled', amount: '30g' },
+      { name: 'Sour cream', amount: '3 tbsp' },
+      { name: 'Mayonnaise', amount: '2 tbsp' },
+      { name: 'Apple cider vinegar', amount: '1 tsp' },
+      { name: 'Garlic powder', amount: '¼ tsp' },
+      { name: 'Fresh chives', amount: '1 tbsp' },
+      { name: 'Salt & pepper', amount: 'to taste' }
+    ],
+    prep: [
+      { title: 'Make Ranch', body: 'Mix sour cream, mayo, ACV, garlic powder, chives, salt and pepper. Thin with 1-2 tsp water if needed. Refrigerate.' },
+      { title: 'Cook Bacon', body: 'Cook bacon until crispy. Drain on paper towels. Crumble or leave in pieces.' },
+      { title: 'Assemble Wedges', body: 'Place iceberg wedges on plates. Spoon ranch over each wedge. Top with bacon, tomatoes, egg quarters, and cheese.' },
+      { title: 'Serve', body: 'Eat immediately while bacon is still crispy. Crack fresh pepper generously over the top.' }
+    ],
+    notes: 'The wedge never left for a reason. Carnivore-friendly version uses sour cream + mayo dressing instead of buttermilk ranch. Add avocado for extra healthy fat.'
+  },
+  {
+    id: 'r20',
+    title: 'Mediterranean Tuna Bowl',
+    origin: 'Viral TikTok / Low-carb community',
+    emoji: '🫒',
+    tags: ['keto', 'high-protein'],
+    macros: { cal: 310, protein: 32, carbs: 6, fat: 17 },
+    servings: 2,
+    ingredients: [
+      { name: 'Canned tuna in olive oil', amount: '2 cans (5 oz each)' },
+      { name: 'Cucumber, diced', amount: '1 cup' },
+      { name: 'Cherry tomatoes, halved', amount: '¾ cup' },
+      { name: 'Kalamata olives', amount: '½ cup' },
+      { name: 'Red onion, thinly sliced', amount: '¼ cup' },
+      { name: 'Fresh parsley', amount: '¼ cup chopped' },
+      { name: 'Feta cheese', amount: '60g' },
+      { name: 'Olive oil', amount: '2 tbsp' },
+      { name: 'Lemon juice', amount: '2 tbsp' },
+      { name: 'Dried oregano', amount: '1 tsp' },
+      { name: 'Salt & pepper', amount: 'to taste' }
+    ],
+    prep: [
+      { title: 'Drain Tuna', body: 'Drain tuna (keep a little olive oil from the can — it\'s flavored and valuable). Flake into large chunks.' },
+      { title: 'Make Dressing', body: 'Whisk olive oil, lemon juice, oregano, salt and pepper.' },
+      { title: 'Build Bowl', body: 'Layer cucumber and tomatoes at the bottom. Add tuna, olives, red onion, and parsley. Crumble feta over the top.' },
+      { title: 'Dress & Serve', body: 'Drizzle dressing over everything. Serve immediately or refrigerate 20 mins to let flavors meld.' }
+    ],
+    notes: 'No cooking required. Perfect meal prep — keep dressing and feta separate until serving. Protein-packed 5-minute meal. Tuna in olive oil (Genova brand) is noticeably better than in water for this recipe.'
+  },
+
+  // ── COURTNEY LUNA RECIPES ────────────────────────────────────
+  {
+    id: 'r21',
+    title: 'Carnivore Chaffles',
+    origin: '@itscourtneyluna (TikTok)',
+    emoji: '🧇',
+    tags: ['carnivore', 'keto'],
+    macros: { cal: 200, protein: 18, carbs: 1, fat: 14 },
+    servings: 2,
+    ingredients: [
+      { name: 'Eggs', amount: '2 large' },
+      { name: 'Shredded mozzarella', amount: '½ cup (56g)' },
+      { name: 'Salt', amount: 'pinch' }
+    ],
+    prep: [
+      { title: 'Preheat Waffle Iron', body: 'Preheat mini waffle iron (like a Dash) and spray with cooking spray or brush with butter.' },
+      { title: 'Mix', body: 'Whisk eggs and mozzarella together with a pinch of salt. The ratio is key: 1 egg per ¼ cup cheese per chaffle.' },
+      { title: 'Cook', body: 'Pour half the batter into the waffle iron. Close and cook 3-4 minutes until golden and crispy. Repeat for second chaffle.' },
+      { title: 'Cool Briefly', body: 'Let sit 2-3 minutes on a rack — they crisp up as they cool. Use as burger buns, toast, sandwich bread, or pizza crust.' }
+    ],
+    notes: 'Courtney Luna style: pure carnivore, zero fillers. Variations: Add ¼ tsp garlic powder + Italian herbs for savory. Add sweetener + cinnamon for breakfast. Top with butter and everything bagel seasoning. The mini Dash waffle maker ($10-15) is the standard tool for chaffles.'
+  },
+  {
+    id: 'r22',
+    title: 'Carnivore Bread (Pork Panko Style)',
+    origin: '@itscourtneyluna (TikTok/Cookbook)',
+    emoji: '🍞',
+    tags: ['carnivore', 'keto'],
+    macros: { cal: 220, protein: 24, carbs: 0, fat: 13 },
+    servings: 12,
+    ingredients: [
+      { name: 'Eggs', amount: '12 large' },
+      { name: 'Pork panko (ground pork rinds)', amount: '4 cups' },
+      { name: 'Butter or beef tallow (melted)', amount: '8 tbsp (1 stick)' },
+      { name: 'Salt', amount: '1 tsp' }
+    ],
+    prep: [
+      { title: 'Preheat & Prep Pan', body: 'Preheat oven to 190°C (375°F). Line a standard loaf pan with parchment paper, leaving overhang on sides for easy removal.' },
+      { title: 'Mix Batter', body: 'Add eggs, pork panko, melted butter/tallow, and salt to a food processor or blender. Blend until completely smooth — no lumps.' },
+      { title: 'Pour & Bake', body: 'Pour batter into prepared pan. Bake 60 minutes until browned on top and a toothpick comes out clean.' },
+      { title: 'Cool Completely', body: 'Let cool in pan 15 mins, then use parchment overhang to lift out. Cool completely on a rack before slicing — at least 1 hour. MUST toast slices for best texture.' }
+    ],
+    notes: 'From Courtney Luna\'s cookbook. Zero carbs — truly carnivore. Pork panko (finely ground pork rinds) is available at Walmart, Amazon, or Kroger. Toast slices in a pan with butter or in toaster oven — it transforms the texture completely. Freezes well sliced.'
+  },
+  {
+    id: 'r23',
+    title: 'Cottage Cheese Wrap (Viral Baked)',
+    origin: '@itscourtneyluna (TikTok)',
+    emoji: '🌮',
+    tags: ['high-protein', 'keto'],
+    macros: { cal: 130, protein: 18, carbs: 4, fat: 4 },
+    servings: 2,
+    ingredients: [
+      { name: 'Cottage cheese (low-fat)', amount: '225g (8 oz)' },
+      { name: 'Eggs', amount: '2 large' },
+      { name: 'Garlic cloves or garlic powder', amount: '1 clove or ½ tsp' },
+      { name: 'Italian seasoning or dried oregano', amount: '1 tsp' },
+      { name: 'Salt', amount: 'pinch' }
+    ],
+    prep: [
+      { title: 'Blend', body: 'Add cottage cheese, eggs, garlic, Italian seasoning, and salt to a blender. Blend until completely smooth — no curds.' },
+      { title: 'Bake', body: 'Preheat oven to 175°C (350°F). Line a baking sheet with parchment paper, lightly grease. Pour batter into a thin, even layer (roughly 10×14 inch oval). Bake 35-40 minutes until set, golden at edges, and no longer jiggly.' },
+      { title: 'Cool Completely', body: 'Let cool completely on the parchment before removing — it firms up and peels off cleanly when fully cool.' },
+      { title: 'Fill & Roll', body: 'Add toppings: deli turkey + provolone + mustard, or tuna salad, or grilled chicken + greens + avocado. Roll tightly or fold like a quesadilla.' }
+    ],
+    notes: 'Courtney Luna made this viral — 18g protein per wrap with almost no carbs. The key: blend completely smooth and cool completely before peeling. Try filling with carnivore toppings: pulled chicken, beef, or carnivore mayo + deli meat.'
+  },
+  {
+    id: 'r24',
+    title: 'Carnivore Butter Cakes (Mini)',
+    origin: '@itscourtneyluna (TikTok)',
+    emoji: '🧁',
+    tags: ['carnivore', 'keto'],
+    macros: { cal: 190, protein: 14, carbs: 2, fat: 14 },
+    servings: 6,
+    ingredients: [
+      { name: 'Whole milk powder', amount: '1 cup' },
+      { name: 'Eggs', amount: '3 large' },
+      { name: 'Vanilla collagen peptides (or unflavored)', amount: '3 tbsp' },
+      { name: 'Butter, melted', amount: '2 tbsp' },
+      { name: 'Heavy cream', amount: '2 tbsp' }
+    ],
+    prep: [
+      { title: 'Mix Wet', body: 'In a bowl, whisk eggs, melted butter, and heavy cream until combined.' },
+      { title: 'Add Milk Powder', body: 'Slowly mix in milk powder until a thick batter forms. The vanilla collagen adds subtle sweetness — unflavored works too.' },
+      { title: 'Bake', body: 'Preheat oven or air fryer to 175°C (350°F). Divide batter into 6 muffin tin wells or silicone cups. Bake 15 minutes until set and golden on top.' },
+      { title: 'Cool & Serve', body: 'Let cool 10 minutes before removing. These are delicate — dense like a custard cake. Serve with butter or a drizzle of honey.' }
+    ],
+    notes: 'Courtney Luna\'s carnivore dessert. Vanilla collagen peptides add sweetness without sugar — unflavored still works well. The milk powder gives it that butter-cake flavor. Best eaten day-of but keeps refrigerated 3 days.'
+  },
+  {
+    id: 'r25',
+    title: 'Carnivore Tuna Melts',
+    origin: '@itscourtneyluna (TikTok)',
+    emoji: '🫕',
+    tags: ['carnivore', 'keto', 'high-protein'],
+    macros: { cal: 380, protein: 42, carbs: 1, fat: 22 },
+    servings: 2,
+    ingredients: [
+      { name: 'Canned tuna (drained)', amount: '2 cans (5 oz each)' },
+      { name: 'Mayonnaise (full fat)', amount: '3 tbsp' },
+      { name: 'Dijon mustard', amount: '1 tsp' },
+      { name: 'Eggs', amount: '4 large' },
+      { name: 'Shredded cheddar or gouda', amount: '½ cup (56g)' },
+      { name: 'Butter', amount: '1 tbsp' },
+      { name: 'Salt & pepper', amount: 'to taste' }
+    ],
+    prep: [
+      { title: 'Make Tuna Mix', body: 'Mix drained tuna with mayo, mustard, salt and pepper. Taste and adjust.' },
+      { title: 'Cook Egg "Bread"', body: 'Crack 2 eggs into a non-stick pan over medium heat. Break yolks and spread flat into a round shape. Cook 2 mins each side until fully set. This is your bread. Repeat.' },
+      { title: 'Melt', body: 'Top each egg "bread" with tuna mixture and shredded cheese. Cover pan with a lid 1-2 minutes to melt cheese.' },
+      { title: 'Serve', body: 'Slide onto a plate. Option to fold in half like a melt or eat open-faced. Courtney Luna style: pure carnivore, zero carbs.' }
+    ],
+    notes: 'The egg "bread" base is the carnivore twist — no bread at all. Pure protein. Also works using chaffle as the base. Courtney shared this as a quick 10-minute carnivore lunch.'
+  },
+
+  // ── MADELAINERASCAN STYLE RECIPES ────────────────────────────
+  {
+    id: 'r26',
+    title: 'Ground Beef Boursin Pasta Bowl (No Pasta)',
+    origin: '@madelainerascan (TikTok)',
+    emoji: '🍝',
+    tags: ['keto', 'high-protein'],
+    macros: { cal: 420, protein: 40, carbs: 7, fat: 24 },
+    servings: 2,
+    ingredients: [
+      { name: 'Lean ground beef', amount: '400g' },
+      { name: 'Zucchini noodles (or shirataki)', amount: '2 cups' },
+      { name: 'Boursin cheese (garlic & herb)', amount: '3 tbsp' },
+      { name: 'Cherry tomatoes, halved', amount: '1 cup' },
+      { name: 'Fresh spinach', amount: '2 cups' },
+      { name: 'Garlic, minced', amount: '3 cloves' },
+      { name: 'Olive oil', amount: '1 tbsp' },
+      { name: 'Red pepper flakes', amount: '¼ tsp' },
+      { name: 'Salt & pepper', amount: 'to taste' }
+    ],
+    prep: [
+      { title: 'Brown Beef', body: 'Brown ground beef in a large skillet over high heat, breaking into small pieces. Season with salt, pepper, and red pepper flakes. Drain excess fat.' },
+      { title: 'Add Aromatics', body: 'Push beef to sides. Add olive oil and garlic to center. Sauté 1 minute until fragrant.' },
+      { title: 'Add Veg', body: 'Add cherry tomatoes and cook 2-3 mins until they start to burst. Add spinach and wilt 1 minute. Add zucchini noodles and toss 1 minute.' },
+      { title: 'Finish with Boursin', body: 'Remove from heat. Add Boursin cheese and toss to coat everything — it melts into a light, creamy sauce. Serve immediately.' }
+    ],
+    notes: 'Madelaine Rascan style: macros-tracked, flavorful, practical. Boursin is the secret — it adds French herb flavor instantly. Sub shirataki noodles for near-zero carbs. Great meal prep, reheats well with a splash of water.'
+  },
+  {
+    id: 'r27',
+    title: 'High-Protein Cucumber Sushi Bowl',
+    origin: '@madelainerascan / TikTok viral',
+    emoji: '🥒',
+    tags: ['high-protein', 'keto'],
+    macros: { cal: 290, protein: 30, carbs: 6, fat: 14 },
+    servings: 2,
+    ingredients: [
+      { name: 'Canned tuna or imitation crab', amount: '2 cans (5 oz each)' },
+      { name: 'Cucumber, diced or sliced', amount: '1 large' },
+      { name: 'Cream cheese (softened)', amount: '2 tbsp' },
+      { name: 'Sriracha mayo (or plain)', amount: '2 tbsp' },
+      { name: 'Soy sauce or coconut aminos', amount: '1 tbsp' },
+      { name: 'Sesame oil', amount: '½ tsp' },
+      { name: 'Avocado, sliced', amount: '1 medium' },
+      { name: 'Nori sheets (or sesame seeds)', amount: '2 sheets, torn' },
+      { name: 'Everything bagel seasoning', amount: '1 tsp' }
+    ],
+    prep: [
+      { title: 'Mix Tuna', body: 'Mix drained tuna with softened cream cheese, sriracha mayo, soy sauce, and sesame oil. Season well.' },
+      { title: 'Assemble Bowl', body: 'Layer diced or sliced cucumber in a bowl. Add tuna mixture in the center.' },
+      { title: 'Top', body: 'Add sliced avocado, torn nori, and everything bagel seasoning. Drizzle extra sriracha mayo if desired.' },
+      { title: 'Eat', body: 'Scoop up cucumber with tuna for every bite. The cucumber replaces rice entirely — low carb sushi experience.' }
+    ],
+    notes: 'This blew up on TikTok because it delivers the sushi experience without rice. Can use a cucumber "boat" instead of dice for presentation. Madelaine Rascan posted a version with spicy tuna that got hundreds of thousands of views.'
+  },
+  {
+    id: 'r28',
+    title: 'High-Protein Meal Prep Chicken Bowls',
+    origin: '@madelainerascan (TikTok)',
+    emoji: '🫙',
+    tags: ['high-protein', 'keto'],
+    macros: { cal: 360, protein: 48, carbs: 6, fat: 14 },
+    servings: 4,
+    ingredients: [
+      { name: 'Chicken breast', amount: '700g (1.5 lbs)' },
+      { name: 'Broccoli florets', amount: '2 cups' },
+      { name: 'Bell pepper (any color)', amount: '1 large, sliced' },
+      { name: 'Zucchini', amount: '1 medium, sliced' },
+      { name: 'Olive oil', amount: '3 tbsp' },
+      { name: 'Garlic powder', amount: '1 tsp' },
+      { name: 'Smoked paprika', amount: '1 tsp' },
+      { name: 'Italian seasoning', amount: '1 tsp' },
+      { name: 'Salt & pepper', amount: 'to taste' },
+      { name: 'Cottage cheese (dressing base)', amount: '½ cup' },
+      { name: 'Lemon juice', amount: '2 tbsp' },
+      { name: 'Fresh dill or parsley', amount: '2 tbsp' }
+    ],
+    prep: [
+      { title: 'Marinate Chicken', body: 'Slice chicken breast into strips or thin cutlets. Toss with olive oil, garlic powder, paprika, Italian seasoning, salt and pepper. Marinate 30 mins min.' },
+      { title: 'Sheet Pan Everything', body: 'Arrange chicken and all vegetables on a large sheet pan (don\'t crowd — use 2 pans if needed). Bake at 210°C (420°F) for 22-25 minutes until chicken is cooked through and veggies are lightly charred.' },
+      { title: 'Make Dressing', body: 'Blend cottage cheese, lemon juice, fresh herbs, salt and pepper until smooth. This is Madelaine\'s high-protein dressing trick.' },
+      { title: 'Assemble & Store', body: 'Divide chicken and veggies into 4 meal prep containers. Add cottage cheese dressing on the side. Keeps 5 days refrigerated.' }
+    ],
+    notes: 'Madelaine Rascan signature style: high protein, meal-prepped, blended cottage cheese as dressing. 48g protein per bowl. The cottage cheese dressing replaces ranch and saves 150 calories. Game-changing for meal prep.'
+  },
+  {
+    id: 'r29',
+    title: 'Whipped Feta Chicken Thighs',
+    origin: '@madelainerascan (TikTok)',
+    emoji: '🍖',
+    tags: ['keto', 'high-protein'],
+    macros: { cal: 410, protein: 44, carbs: 4, fat: 23 },
+    servings: 3,
+    ingredients: [
+      { name: 'Bone-in skin-on chicken thighs', amount: '3 large (about 600g)' },
+      { name: 'Feta cheese block', amount: '100g' },
+      { name: 'Greek yogurt (0%)', amount: '3 tbsp' },
+      { name: 'Lemon juice', amount: '1 tbsp' },
+      { name: 'Garlic powder', amount: '½ tsp' },
+      { name: 'Olive oil', amount: '2 tbsp' },
+      { name: 'Smoked paprika', amount: '1 tsp' },
+      { name: 'Dried thyme', amount: '½ tsp' },
+      { name: 'Fresh parsley', amount: 'for garnish' },
+      { name: 'Salt & pepper', amount: 'to taste' }
+    ],
+    prep: [
+      { title: 'Season & Roast Chicken', body: 'Rub chicken thighs with olive oil, paprika, thyme, salt, and pepper. Roast at 220°C (430°F) skin-side up on a wire rack for 35-40 minutes until skin is deeply crispy.' },
+      { title: 'Make Whipped Feta', body: 'While chicken roasts, blend feta, Greek yogurt, lemon juice, and garlic powder in a food processor until smooth and creamy. Season with pepper.' },
+      { title: 'Serve', body: 'Spread whipped feta on a plate. Place crispy chicken thighs on top. Garnish with fresh parsley and a drizzle of olive oil.' }
+    ],
+    notes: 'Madelaine Rascan\'s whipped feta trend. The yogurt thins the feta perfectly into a sauce-like texture. Use as a base for any protein. Whipped feta also works cold as a dip with vegetables.'
+  },
+
+  // ── MORE KETO/CARNIVORE MAINS ────────────────────────────────
+  {
+    id: 'r30',
+    title: 'Smash Burgers with Carnivore Sauce',
+    origin: 'Carnivore/Keto community / @itscourtneyluna style',
+    emoji: '🍔',
+    tags: ['carnivore', 'keto', 'high-protein'],
+    macros: { cal: 520, protein: 45, carbs: 2, fat: 36 },
+    servings: 2,
+    ingredients: [
+      { name: 'Ground beef (80/20)', amount: '400g, divided into 4 balls' },
+      { name: 'American or cheddar cheese slices', amount: '4 slices' },
+      { name: 'Butter', amount: '2 tbsp' },
+      { name: 'Salt & pepper', amount: 'generously' },
+      { name: 'Garlic powder', amount: '½ tsp' },
+      { name: 'Mayonnaise', amount: '2 tbsp (sauce)' },
+      { name: 'Dijon mustard', amount: '1 tsp (sauce)' },
+      { name: 'Dill pickle juice', amount: '1 tsp (sauce)' }
+    ],
+    prep: [
+      { title: 'Make Sauce', body: 'Mix mayo, Dijon, and pickle juice for a quick smash sauce. Refrigerate.' },
+      { title: 'Prep Balls', body: 'Season ground beef balls with salt, pepper, and garlic powder. Don\'t overwork the meat.' },
+      { title: 'Smash', body: 'Heat a cast iron skillet over HIGH heat until smoking. Add butter. Place one ball in and immediately smash FLAT with a spatula (or burger press). Hold for 30 seconds. Cook 2 minutes until a dark crust forms. Flip, add cheese, cook 1 more minute.' },
+      { title: 'Stack & Serve', body: 'Stack two patties per burger. Serve in carnivore bread buns, chaffles, lettuce wraps, or open-faced. Drizzle sauce. Add pickles if desired.' }
+    ],
+    notes: 'The smash creates a crust — this is non-negotiable. Cast iron is essential. 80/20 beef is essential (fat = flavor + crust). Courtney Luna carnivore bread buns or chaffles as buns = full carnivore. No carbs at all.'
+  },
+  {
+    id: 'r31',
+    title: 'Keto Green Goddess Chicken Salad',
+    origin: 'Viral TikTok green goddess trend / keto adaptation',
+    emoji: '💚',
+    tags: ['keto', 'high-protein'],
+    macros: { cal: 340, protein: 38, carbs: 5, fat: 17 },
+    servings: 3,
+    ingredients: [
+      { name: 'Cooked chicken breast, shredded', amount: '450g' },
+      { name: 'Fresh basil', amount: '1 cup packed' },
+      { name: 'Fresh parsley', amount: '½ cup' },
+      { name: 'Fresh chives', amount: '¼ cup' },
+      { name: 'Greek yogurt (0%)', amount: '⅓ cup' },
+      { name: 'Sour cream', amount: '2 tbsp' },
+      { name: 'Lemon juice', amount: '2 tbsp' },
+      { name: 'Garlic clove', amount: '1' },
+      { name: 'Olive oil', amount: '1 tbsp' },
+      { name: 'Salt & pepper', amount: 'to taste' }
+    ],
+    prep: [
+      { title: 'Blend Dressing', body: 'Blend basil, parsley, chives, Greek yogurt, sour cream, lemon juice, garlic, olive oil, salt and pepper until smooth and bright green.' },
+      { title: 'Toss', body: 'Toss shredded chicken with green goddess dressing. Coat generously.' },
+      { title: 'Chill', body: 'Refrigerate 15-30 mins for flavors to develop. The green intensifies.' },
+      { title: 'Serve', body: 'Serve over lettuce, in lettuce cups, on cloud bread, or stuffed in tomatoes or bell peppers.' }
+    ],
+    notes: 'The green goddess dressing is the whole show — blending fresh herbs creates something magical. Keeps 3 days in the fridge (dressing may oxidize/darken slightly but flavor is unaffected). Add cucumber or celery for crunch.'
+  },
+  {
+    id: 'r32',
+    title: 'Creamy Tuscan Salmon',
+    origin: 'Keto community viral / @madelainerascan style',
+    emoji: '🐟',
+    tags: ['keto', 'high-protein'],
+    macros: { cal: 440, protein: 42, carbs: 5, fat: 27 },
+    servings: 2,
+    ingredients: [
+      { name: 'Salmon fillets', amount: '2 × 170g (6 oz each)' },
+      { name: 'Heavy cream', amount: '½ cup' },
+      { name: 'Cream cheese', amount: '1 tbsp' },
+      { name: 'Garlic, minced', amount: '3 cloves' },
+      { name: 'Sun-dried tomatoes', amount: '¼ cup, chopped' },
+      { name: 'Fresh spinach', amount: '2 cups' },
+      { name: 'Parmesan, grated', amount: '3 tbsp' },
+      { name: 'Italian seasoning', amount: '1 tsp' },
+      { name: 'Butter', amount: '1 tbsp' },
+      { name: 'Salt & pepper', amount: 'to taste' }
+    ],
+    prep: [
+      { title: 'Sear Salmon', body: 'Pat salmon dry, season with salt and pepper. Sear in butter in an oven-safe skillet over medium-high heat 3-4 mins per side until golden. Remove and set aside.' },
+      { title: 'Make Sauce', body: 'In same pan, sauté garlic 30 seconds. Add sun-dried tomatoes, Italian seasoning. Add heavy cream, cream cheese, and parmesan. Stir until smooth and bubbling.' },
+      { title: 'Add Greens', body: 'Add spinach and wilt 1-2 minutes. Season sauce with salt and pepper.' },
+      { title: 'Return Salmon', body: 'Nestle salmon back into sauce. Spoon sauce over top. Serve immediately over cauliflower rice or zucchini noodles.' }
+    ],
+    notes: 'Restaurant-quality in 20 minutes. The cream cheese in the sauce adds body without heaviness. Sun-dried tomatoes add sweetness and umami. Full keto — zero grain, high healthy fat.'
+  },
+  {
+    id: 'r33',
+    title: 'Lazy Carnivore Egg Roll Bowl',
+    origin: 'Carnivore/Keto TikTok community',
+    emoji: '🥡',
+    tags: ['carnivore', 'keto', 'high-protein'],
+    macros: { cal: 350, protein: 36, carbs: 5, fat: 19 },
+    servings: 3,
+    ingredients: [
+      { name: 'Ground pork or beef', amount: '450g' },
+      { name: 'Coleslaw mix (shredded cabbage/carrot)', amount: '3 cups (one small bag)' },
+      { name: 'Garlic, minced', amount: '3 cloves' },
+      { name: 'Fresh ginger', amount: '1 tsp grated' },
+      { name: 'Soy sauce or coconut aminos', amount: '3 tbsp' },
+      { name: 'Sesame oil', amount: '1 tsp' },
+      { name: 'Rice vinegar', amount: '1 tbsp' },
+      { name: 'Green onions', amount: '3, sliced' },
+      { name: 'Sriracha (optional)', amount: 'to taste' },
+      { name: 'Sesame seeds', amount: '1 tsp' }
+    ],
+    prep: [
+      { title: 'Brown Meat', body: 'Brown ground pork or beef in a large wok or skillet over high heat. Season with salt. Drain excess fat.' },
+      { title: 'Add Aromatics', body: 'Add garlic and ginger to the meat. Sauté 30 seconds until fragrant.' },
+      { title: 'Add Cabbage', body: 'Add coleslaw mix and cook 3-4 minutes until just tender but still with crunch.' },
+      { title: 'Season', body: 'Add soy sauce, sesame oil, and rice vinegar. Toss to combine. Cook 1 more minute. Top with green onions, sesame seeds, and sriracha.' }
+    ],
+    notes: 'All the egg roll flavor, none of the wrapper carbs. Bagged coleslaw mix is the lazy hack — zero chopping. Ground pork is more traditional but ground beef works perfectly. Under 20 minutes total. Excellent meal prep — 4 days in fridge.'
+  },
+  {
+    id: 'r34',
+    title: 'Whipped Cottage Cheese Protein Bowls',
+    origin: 'Viral TikTok / @madelainerascan',
+    emoji: '🥣',
+    tags: ['high-protein', 'keto'],
+    macros: { cal: 280, protein: 32, carbs: 6, fat: 10 },
+    servings: 2,
+    ingredients: [
+      { name: 'Cottage cheese (full fat)', amount: '2 cups (450g)' },
+      { name: 'Cooked chicken breast, sliced', amount: '250g' },
+      { name: 'Everything bagel seasoning', amount: '1 tsp' },
+      { name: 'Olive oil', amount: '2 tsp' },
+      { name: 'Cherry tomatoes, halved', amount: '½ cup' },
+      { name: 'Cucumber, sliced', amount: '½ cup' },
+      { name: 'Fresh dill', amount: '1 tbsp' },
+      { name: 'Lemon juice', amount: '1 tbsp' },
+      { name: 'Salt & pepper', amount: 'to taste' }
+    ],
+    prep: [
+      { title: 'Whip Cottage Cheese', body: 'Blend cottage cheese in a food processor or with an immersion blender until completely smooth. Season with salt, pepper, and lemon juice.' },
+      { title: 'Plate', body: 'Spread whipped cottage cheese in a bowl like a sauce base.' },
+      { title: 'Add Toppings', body: 'Arrange sliced chicken, tomatoes, and cucumber on top. Sprinkle everything bagel seasoning and fresh dill over everything. Drizzle olive oil.' },
+      { title: 'Serve', body: 'Eat immediately or refrigerate (keep toppings separate from cottage cheese base). Cottage cheese base keeps 3 days.' }
+    ],
+    notes: 'Blending cottage cheese is life-changing — it becomes silky smooth, almost like Greek yogurt but with more protein. Madelaine Rascan popularized the "cottage cheese base" trend. Swap chicken for any protein.'
+  },
+  {
+    id: 'r35',
+    title: 'Air Fryer Salmon Bites',
+    origin: 'Viral TikTok / Keto community',
+    emoji: '🎣',
+    tags: ['keto', 'high-protein', 'carnivore'],
+    macros: { cal: 320, protein: 38, carbs: 2, fat: 17 },
+    servings: 2,
+    ingredients: [
+      { name: 'Salmon fillet, cubed (1-inch pieces)', amount: '400g' },
+      { name: 'Soy sauce or coconut aminos', amount: '2 tbsp' },
+      { name: 'Sesame oil', amount: '1 tsp' },
+      { name: 'Garlic powder', amount: '½ tsp' },
+      { name: 'Honey or sugar-free sweetener', amount: '1 tsp' },
+      { name: 'Sriracha (optional)', amount: '1 tsp' },
+      { name: 'Sesame seeds + scallions', amount: 'for garnish' }
+    ],
+    prep: [
+      { title: 'Marinate', body: 'Cube salmon into 1-inch pieces. Toss with soy sauce, sesame oil, garlic powder, sweetener, and sriracha. Marinate 15-30 mins in the fridge.' },
+      { title: 'Air Fry', body: 'Place salmon cubes in air fryer basket in a single layer. Air fry at 200°C (400°F) for 7-8 minutes — crispy outside, tender inside. Don\'t overcrowd.' },
+      { title: 'Garnish & Serve', body: 'Top with sesame seeds and sliced scallions. Serve over cauliflower rice, in lettuce cups, or on their own with a dipping sauce.' }
+    ],
+    notes: 'Incredibly fast — dinner in 20 mins including marinade. The air fryer gives a slightly crispy exterior that\'s impossible to achieve in a pan for small pieces. Leftover salmon bites are great cold over a salad the next day.'
+  },
+  {
+    id: 'r36',
+    title: 'Protein Pizza Crust (Cottage Cheese)',
+    origin: 'Viral TikTok / Keto community',
+    emoji: '🍕',
+    tags: ['high-protein', 'keto'],
+    macros: { cal: 180, protein: 20, carbs: 4, fat: 8 },
+    servings: 2,
+    ingredients: [
+      { name: 'Cottage cheese', amount: '1 cup (225g)' },
+      { name: 'Eggs', amount: '2 large' },
+      { name: 'Garlic powder', amount: '½ tsp' },
+      { name: 'Italian seasoning', amount: '1 tsp' },
+      { name: 'Salt', amount: '¼ tsp' },
+      { name: 'Low-sugar marinara', amount: '¼ cup (topping)' },
+      { name: 'Mozzarella, shredded', amount: '½ cup (topping)' },
+      { name: 'Toppings of choice', amount: 'pepperoni, olives, etc.' }
+    ],
+    prep: [
+      { title: 'Blend Crust Batter', body: 'Blend cottage cheese, eggs, garlic powder, Italian seasoning, and salt until completely smooth.' },
+      { title: 'Bake Crust', body: 'Pour onto a parchment-lined baking sheet in a circle. Bake at 200°C (400°F) for 22-25 minutes until edges are golden and center is set. Let cool 5 mins.' },
+      { title: 'Add Toppings', body: 'Spread marinara over crust. Add mozzarella and toppings.' },
+      { title: 'Bake Again', body: 'Return to oven for 8-10 minutes until cheese is melted and bubbly. Broil 1-2 mins for browning.' }
+    ],
+    notes: 'Crust base is the same batter as Courtney Luna\'s cottage cheese wrap — just baked thicker. ~20g protein in the crust alone before toppings. Works best on parchment — don\'t skip it. Cool completely between first and second bake for crispy base.'
+  },
+  {
+    id: 'r37',
+    title: 'Carnivore Ground Beef Skillet',
+    origin: '@itscourtneyluna / Carnivore TikTok',
+    emoji: '🥘',
+    tags: ['carnivore', 'keto', 'high-protein'],
+    macros: { cal: 390, protein: 40, carbs: 2, fat: 24 },
+    servings: 2,
+    ingredients: [
+      { name: 'Ground beef (80/20)', amount: '400g' },
+      { name: 'Eggs', amount: '4 large' },
+      { name: 'Butter', amount: '2 tbsp' },
+      { name: 'Salt', amount: '1 tsp' },
+      { name: 'Black pepper', amount: '½ tsp' },
+      { name: 'Garlic powder', amount: '½ tsp' },
+      { name: 'Cheddar cheese shredded', amount: '½ cup' }
+    ],
+    prep: [
+      { title: 'Brown Beef', body: 'Brown ground beef in a cast iron skillet over high heat. Season with salt, pepper, and garlic powder. Cook until nicely browned with caramelized bits. Drain if needed, but leave some fat for flavor.' },
+      { title: 'Make a Well', body: 'Push beef to edges of the pan. Add butter to center. Crack eggs into the butter.' },
+      { title: 'Cook Eggs', body: 'Cook eggs to preference — soft, medium, or fully set. Stir into beef if you want scrambled, or leave them sunny-side.' },
+      { title: 'Cheese & Serve', body: 'Sprinkle cheddar over everything. Cover with lid 1 minute to melt. Serve directly from the skillet.' }
+    ],
+    notes: 'Courtney Luna calls this her "busy mom carnivore dinner." One skillet, 15 minutes, nearly zero carbs. Zero plant foods. Add sour cream on top. This is as simple and pure as carnivore gets. Kids love it too.'
+  },
+  {
+    id: 'r38',
+    title: 'Egg White Cloud Bread Loaf',
+    origin: 'TheModernNonna.com / Carnivore keto baking',
+    emoji: '🍞',
+    tags: ['keto', 'high-protein'],
+    macros: { cal: 60, protein: 8, carbs: 1, fat: 2 },
+    servings: 8,
+    ingredients: [
+      { name: 'Egg white powder', amount: '½ cup (or 8 egg whites)' },
+      { name: 'Water (if using powder)', amount: '½ cup' },
+      { name: 'Greek yogurt or cottage cheese', amount: '½ cup' },
+      { name: 'Salt', amount: '¼ tsp' }
+    ],
+    prep: [
+      { title: 'Whip Whites', body: 'Using stand mixer or hand mixer, whip egg white powder + water (or fresh whites) until stiff peaks form. This takes 4-6 minutes on high speed.' },
+      { title: 'Fold Yogurt', body: 'Gently fold Greek yogurt and salt into whipped whites — do not deflate. Fold in 3 additions.' },
+      { title: 'Bake', body: 'Pour into a parchment-lined loaf pan. Bake at 175°C (350°F) for 35 minutes until golden on top.' },
+      { title: 'Cool & Slice', body: 'Cool completely in pan before removing. Slice into 8 pieces. Best eaten same day. Texture is spongy like a cloud.' }
+    ],
+    notes: 'Loaf version of cloud bread — slices like actual bread. 8g protein per slice, nearly zero carbs. Egg white powder (Bob\'s Red Mill or Anthony\'s) gives more consistent results than fresh whites. Lightly toast in butter for best texture. Good for sandwiches but delicate — handle gently.'
+  },
+  {
+    id: 'r39',
+    title: 'Protein Bagels (Cottage Cheese)',
+    origin: 'All Day I Dream About Food / Viral keto community 2024',
+    emoji: '🥯',
+    tags: ['high-protein', 'keto'],
+    macros: { cal: 160, protein: 13, carbs: 4, fat: 7 },
+    servings: 4,
+    ingredients: [
+      { name: 'Cottage cheese (blended smooth)', amount: '1 cup (225g)' },
+      { name: 'Eggs', amount: '2 large' },
+      { name: 'Almond flour', amount: '½ cup' },
+      { name: 'Baking powder', amount: '1½ tsp' },
+      { name: 'Salt', amount: '¼ tsp' },
+      { name: 'Everything bagel seasoning', amount: '2 tsp (topping)' },
+      { name: 'Egg white (for wash)', amount: '1' }
+    ],
+    prep: [
+      { title: 'Blend Cottage Cheese', body: 'Blend cottage cheese until completely smooth — this step is critical for texture.' },
+      { title: 'Mix Dough', body: 'Mix blended cottage cheese, eggs, almond flour, baking powder, and salt into a thick dough. It will be sticky.' },
+      { title: 'Shape', body: 'Wet your hands. Divide into 4 portions. Shape each into a ring (poke a hole in the center and stretch). Place on parchment-lined baking sheet.' },
+      { title: 'Wash & Top', body: 'Brush each bagel with egg white. Sprinkle generously with everything bagel seasoning.' },
+      { title: 'Bake', body: 'Bake at 190°C (375°F) for 25-28 minutes until deeply golden. Cool before slicing.' }
+    ],
+    notes: 'Went massively viral on TikTok and Instagram in 2024. Key: blend cottage cheese first for smooth texture. 13g protein per bagel. Slice, toast, and top with cream cheese + smoked salmon for a keto deli experience.'
+  },
+  {
+    id: 'r40',
+    title: 'Keto Ranch Dressing & Dip (Housemade)',
+    origin: 'Carnivore/Keto community — a condiment staple',
+    emoji: '🫙',
+    tags: ['keto', 'carnivore'],
+    macros: { cal: 120, protein: 2, carbs: 1, fat: 12 },
+    servings: 8,
+    ingredients: [
+      { name: 'Sour cream', amount: '½ cup' },
+      { name: 'Mayonnaise (full fat)', amount: '¼ cup' },
+      { name: 'Heavy cream (to thin)', amount: '1-2 tbsp' },
+      { name: 'Fresh chives', amount: '2 tbsp chopped' },
+      { name: 'Fresh dill', amount: '1 tbsp chopped' },
+      { name: 'Garlic powder', amount: '½ tsp' },
+      { name: 'Onion powder', amount: '¼ tsp' },
+      { name: 'Apple cider vinegar', amount: '1 tsp' },
+      { name: 'Salt & pepper', amount: 'to taste' }
+    ],
+    prep: [
+      { title: 'Mix', body: 'Whisk together sour cream, mayo, heavy cream (start with 1 tbsp), garlic powder, onion powder, and ACV until smooth.' },
+      { title: 'Add Herbs', body: 'Stir in fresh chives and dill. Season with salt and pepper.' },
+      { title: 'Adjust', body: 'Too thick? Add more heavy cream or a splash of water. Taste — add more garlic or ACV as needed.' },
+      { title: 'Chill', body: 'Refrigerate at least 30 mins before serving — it thickens and flavor deepens. Keeps 1 week in fridge.' }
+    ],
+    notes: 'Homemade ranch is wildly better than bottled and takes 5 minutes. Staple condiment for all keto/carnivore cooking. Works as a dip, dressing, sauce for cloud bread, burger topping, or chicken marinade. Swap dried herbs if you don\'t have fresh.'
+  }
+];
+
+// ============================================================
+// STATE
+// ============================================================
+let state = {
+  recipes: [],
+  selected: [],
+  dnm: [],
+  onHand: {},
+  pendingDeleteId: null,
+  currentRecipeId: null
+};
+
+function saveState() {
+  localStorage.setItem('proteinVault', JSON.stringify(state));
+}
+function loadState() {
+  try {
+    const saved = localStorage.getItem('proteinVault');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      state = { ...state, ...parsed };
+      // Merge any new recipes not in saved state
+      const savedIds = state.recipes.map(r => r.id);
+      INITIAL_RECIPES.forEach(r => {
+        if (!savedIds.includes(r.id)) state.recipes.push(r);
+      });
+    } else {
+      state.recipes = JSON.parse(JSON.stringify(INITIAL_RECIPES));
+    }
+  } catch(e) {
+    state.recipes = JSON.parse(JSON.stringify(INITIAL_RECIPES));
+  }
+}
+
+// ============================================================
+// FILTER
+// ============================================================
+let currentFilter = 'all';
+const SALAD_IDS = ['r14','r15','r16','r17','r18','r19','r20','r31'];
+const BREAD_IDS = ['r2','r13','r21','r22','r23','r38','r39'];
+const SWEET_IDS = ['r1','r3','r10','r11','r24','r40'];
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderVault();
+}
+
+function filterRecipes(recipes) {
+  if (currentFilter === 'all') return recipes;
+  if (currentFilter === 'salad') return recipes.filter(r => SALAD_IDS.includes(r.id));
+  if (currentFilter === 'bread') return recipes.filter(r => BREAD_IDS.includes(r.id));
+  if (currentFilter === 'sweet') return recipes.filter(r => SWEET_IDS.includes(r.id));
+  return recipes.filter(r => r.tags.includes(currentFilter));
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showView(v) {
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('view-' + v).classList.add('active');
+  const idx = ['vault','shop','dnm'].indexOf(v);
+  if (idx >= 0) document.querySelectorAll('.nav-btn')[idx].classList.add('active');
+  updateCounts();
+  if (v === 'vault') renderVault();
+  if (v === 'shop') renderShopList();
+  if (v === 'dnm') renderDNM();
+}
+
+function goToShop() {
+  showView('shop');
+  renderShopList();
+}
+
+// ============================================================
+// VAULT
+// ============================================================
+function renderVault() {
+  const grid = document.getElementById('recipe-grid');
+  const activeRecipes = filterRecipes(state.recipes.filter(r => !state.dnm.find(d => d.id === r.id)));
+  
+  if (activeRecipes.length === 0) {
+    grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="icon">📦</div><h3>Vault is Empty</h3><p>All recipes have been removed to the Do Not Make list.</p></div>`;
+    return;
+  }
+
+  grid.innerHTML = activeRecipes.map(r => {
+    const isSelected = state.selected.includes(r.id);
+    const note = r.notes ? `<div class="card-note">📝 ${r.notes.substring(0,80)}${r.notes.length>80?'…':''}</div>` : '';
+    return `
+    <div class="recipe-card ${isSelected?'selected':''}" onclick="toggleSelect('${r.id}', event)">
+      <div class="card-emoji" onclick="viewDetail('${r.id}'); event.stopPropagation();">${r.emoji}</div>
+      <div class="card-body">
+        <div class="card-title" onclick="viewDetail('${r.id}'); event.stopPropagation();" style="cursor:pointer">${r.title}</div>
+        <div class="card-origin">${r.origin}</div>
+        <div class="card-macros">
+          <div class="macro-pill protein">${r.macros.protein}g protein</div>
+          <div class="macro-pill">${r.macros.cal} cal</div>
+          <div class="macro-pill">${r.macros.carbs}g carbs</div>
+        </div>
+        <div class="card-tags">
+          ${r.tags.map(t => `<span class="tag ${t}">${t}</span>`).join('')}
+        </div>
+        ${note}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleSelect(id, event) {
+  if (event.target.closest('.card-emoji') || event.target.closest('.card-title')) return;
+  const idx = state.selected.indexOf(id);
+  if (idx >= 0) state.selected.splice(idx, 1);
+  else state.selected.push(id);
+  saveState();
+  updateCounts();
+  renderVault();
+}
+
+function clearSelection() {
+  state.selected = [];
+  saveState();
+  updateCounts();
+  renderVault();
+}
+
+function updateCounts() {
+  document.getElementById('vault-count').textContent = state.recipes.filter(r => !state.dnm.find(d=>d.id===r.id)).length;
+  document.getElementById('selected-count').textContent = state.selected.length;
+  document.getElementById('dnm-count').textContent = state.dnm.length;
+  const shopBtn = document.getElementById('shop-btn');
+  shopBtn.disabled = state.selected.length === 0;
+}
+
+// ============================================================
+// DETAIL VIEW
+// ============================================================
+function viewDetail(id) {
+  state.currentRecipeId = id;
+  const r = state.recipes.find(x => x.id === id);
+  if (!r) return;
+
+  const inDNM = state.dnm.find(d => d.id === id);
+  const noteBlock = r.notes
+    ? `<div class="existing-note">📝 ${r.notes}</div>`
+    : '';
+
+  document.getElementById('detail-content').innerHTML = `
+    <div class="recipe-detail">
+      <div class="detail-header">
+        <div class="detail-emoji">${r.emoji}</div>
+        <div>
+          <div class="detail-title">${r.title}</div>
+          <div class="detail-origin">📍 ${r.origin}</div>
+          <div class="detail-macros">
+            <div class="macro-box protein"><div class="val">${r.macros.protein}g</div><div class="label">Protein</div></div>
+            <div class="macro-box"><div class="val">${r.macros.cal}</div><div class="label">Calories</div></div>
+            <div class="macro-box"><div class="val">${r.macros.carbs}g</div><div class="label">Carbs</div></div>
+            <div class="macro-box"><div class="val">${r.macros.fat}g</div><div class="label">Fat</div></div>
+            <div class="macro-box"><div class="val">${r.servings}</div><div class="label">Servings</div></div>
+          </div>
+          <div class="card-tags" style="margin-top:0.5rem">
+            ${r.tags.map(t => `<span class="tag ${t}">${t}</span>`).join('')}
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-section-header">🧾 Ingredients</div>
+        <div class="detail-section-body">
+          ${r.ingredients.map(i => `
+            <div class="ingredient-item">
+              <span>${i.name}</span>
+              <span class="ingredient-amount">${i.amount}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-section-header">👨‍🍳 Instructions</div>
+        <div class="detail-section-body">
+          ${r.prep.map((s,i) => `
+            <div class="step-item">
+              <div class="step-num">${i+1}</div>
+              <div>
+                <div class="step-title">${s.title}</div>
+                <div class="step-body">${s.body}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-section-header">📝 My Notes</div>
+        <div class="detail-section-body">
+          ${noteBlock}
+          <textarea class="note-area" id="note-input" placeholder="Add your notes, modifications, substitutions...">${r.notes}</textarea>
+          <button class="btn btn-green" onclick="saveNote('${r.id}')">💾 Save Note & Append to Recipe</button>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:0.75rem; margin-top:1.5rem; flex-wrap:wrap">
+        ${!inDNM ? `<button class="btn btn-red" onclick="openDeleteModal('${r.id}')">🚫 Move to Do Not Make</button>` : ''}
+      </div>
+    </div>
+  `;
+
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('view-detail').classList.add('active');
+}
+
+function saveNote(id) {
+  const r = state.recipes.find(x => x.id === id);
+  const noteText = document.getElementById('note-input').value.trim();
+  if (r) {
+    r.notes = noteText;
+    saveState();
+    viewDetail(id); // re-render detail
+    // Flash feedback
+    const btn = event.target;
+    btn.textContent = '✅ Saved!';
+    setTimeout(() => btn.textContent = '💾 Save Note & Append to Recipe', 2000);
+  }
+}
+
+// ============================================================
+// SHOPPING LIST
+// ============================================================
+function renderShopList() {
+  const selectedRecipes = state.recipes.filter(r => state.selected.includes(r.id));
+
+  document.getElementById('selected-recipes-display').innerHTML = selectedRecipes.map(r =>
+    `<div class="recipe-chip">${r.emoji} ${r.title}</div>`
+  ).join('') || `<div style="color:var(--text3);font-size:0.83rem">No recipes selected. <button class="btn btn-outline btn-sm" style="margin-left:0.5rem" onclick="showView('vault')">Go to Vault →</button></div>`;
+
+  if (selectedRecipes.length === 0) {
+    document.getElementById('shopping-list-content').innerHTML = '';
+    return;
+  }
+
+  // Aggregate ingredients
+  const all = {};
+  selectedRecipes.forEach(r => {
+    r.ingredients.forEach(i => {
+      const key = i.name.toLowerCase().trim();
+      if (!all[key]) all[key] = { name: i.name, amounts: [], recipes: [] };
+      all[key].amounts.push(i.amount);
+      all[key].recipes.push(r.title);
+    });
+  });
+
+  // Group by category
+  const categories = {
+    '🥩 Proteins & Meat': ['chicken', 'beef', 'ground beef', 'pork', 'bacon', 'turkey'],
+    '🧀 Dairy & Eggs': ['egg', 'eggs', 'cream cheese', 'cottage cheese', 'heavy cream', 'butter', 'cheese', 'greek yogurt', 'feta', 'swiss', 'gruyère', 'cheddar', 'parmesan', 'sour cream'],
+    '🥦 Produce': ['banana', 'bananas', 'cauliflower', 'broccoli', 'zucchini', 'mushroom', 'mushrooms', 'onion', 'tomato', 'tomatoes', 'jalapeño', 'lemon', 'mint', 'basil', 'cherry tomatoes', 'scallion', 'avocado'],
+    '🫙 Pantry & Spices': ['cocoa', 'maple syrup', 'baking powder', 'vanilla', 'garlic powder', 'onion powder', 'salt', 'pepper', 'paprika', 'cumin', 'turmeric', 'cinnamon', 'almond flour', 'protein powder', 'gelatin', 'honey', 'sweetener', 'allulose', 'almond milk', 'olive oil', 'red pepper', 'seasonings', 'marinara', 'pork rinds']
+  };
+
+  const grouped = { '🥩 Proteins & Meat': [], '🧀 Dairy & Eggs': [], '🥦 Produce': [], '🫙 Pantry & Spices': [], '🛒 Other': [] };
+
+  Object.values(all).forEach(item => {
+    let found = false;
+    for (const [cat, keywords] of Object.entries(categories)) {
+      if (keywords.some(kw => item.name.toLowerCase().includes(kw))) {
+        grouped[cat].push(item);
+        found = true;
+        break;
+      }
+    }
+    if (!found) grouped['🛒 Other'].push(item);
+  });
+
+  const onHand = state.onHand || {};
+
+  let html = '';
+  Object.entries(grouped).forEach(([cat, items]) => {
+    if (items.length === 0) return;
+    html += `<div class="shopping-section">
+      <div class="shopping-section-title">${cat}</div>
+      ${items.map(item => {
+        const key = item.name.toLowerCase().trim();
+        const checked = onHand[key] ? 'have-it' : '';
+        const checkIcon = onHand[key] ? '✓' : '';
+        const uniqueRecipes = [...new Set(item.recipes)];
+        return `
+        <div class="shopping-item ${checked}" id="si-${key.replace(/[^a-z]/g,'')}" onclick="toggleOnHand('${key}')">
+          <div class="item-check">${checkIcon}</div>
+          <div style="flex:1">
+            <div class="item-name">${item.name}</div>
+            ${item.amounts.length > 1 ? `<div class="item-amount">${item.amounts.join(' + ')}</div>` : `<div class="item-amount">${item.amounts[0]}</div>`}
+            ${uniqueRecipes.length > 1 ? `<div class="item-recipes">Used in: ${uniqueRecipes.join(', ')}</div>` : ''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  });
+
+  document.getElementById('shopping-list-content').innerHTML = html;
+}
+
+function toggleOnHand(key) {
+  if (!state.onHand) state.onHand = {};
+  state.onHand[key] = !state.onHand[key];
+  saveState();
+  renderShopList();
+}
+
+function printList() {
+  window.print();
+}
+
+function copyList() {
+  const selectedRecipes = state.recipes.filter(r => state.selected.includes(r.id));
+  let text = 'SHOPPING LIST\n' + selectedRecipes.map(r => r.title).join(', ') + '\n\n';
+  selectedRecipes.forEach(r => {
+    text += `--- ${r.title} ---\n`;
+    r.ingredients.forEach(i => text += `• ${i.name}: ${i.amount}\n`);
+    text += '\n';
+  });
+  navigator.clipboard.writeText(text).then(() => {
+    alert('Shopping list copied to clipboard!');
+  });
+}
+
+// ============================================================
+// DELETE / DNM
+// ============================================================
+function openDeleteModal(id) {
+  state.pendingDeleteId = id;
+  const r = state.recipes.find(x => x.id === id);
+  document.getElementById('delete-modal-body').innerHTML = `Are you sure you want to move <strong>${r.title}</strong> to the Do Not Make list? The recipe will be archived with your reason.`;
+  document.getElementById('delete-reason').value = '';
+  document.getElementById('delete-modal').classList.add('open');
+}
+
+function closeDeleteModal() {
+  document.getElementById('delete-modal').classList.remove('open');
+  state.pendingDeleteId = null;
+}
+
+function confirmDelete() {
+  const id = state.pendingDeleteId;
+  const r = state.recipes.find(x => x.id === id);
+  const reason = document.getElementById('delete-reason').value.trim();
+  if (r) {
+    state.dnm.push({ id: r.id, title: r.title, origin: r.origin, emoji: r.emoji, reason, date: new Date().toLocaleDateString() });
+    state.selected = state.selected.filter(x => x !== id);
+    saveState();
+  }
+  closeDeleteModal();
+  showView('vault');
+}
+
+function renderDNM() {
+  const el = document.getElementById('dnm-list');
+  if (state.dnm.length === 0) {
+    el.innerHTML = `<div class="empty"><div class="icon">✅</div><h3>All Clear!</h3><p>Nothing here yet. When you try a recipe and don't want to repeat it, move it here.</p></div>`;
+    return;
+  }
+  el.innerHTML = state.dnm.map(d => `
+    <div class="dnm-item">
+      <div>
+        <div style="font-size:1.5rem; margin-bottom:0.3rem">${d.emoji}</div>
+        <div class="dnm-title">${d.title}</div>
+        <div class="dnm-meta">📍 ${d.origin} · Archived ${d.date}</div>
+        ${d.reason ? `<div class="dnm-reason">💬 "${d.reason}"</div>` : ''}
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="restoreRecipe('${d.id}')">↩ Restore</button>
+    </div>
+  `).join('');
+}
+
+function restoreRecipe(id) {
+  state.dnm = state.dnm.filter(d => d.id !== id);
+  saveState();
+  renderDNM();
+  updateCounts();
+}
+
+// ============================================================
+// INIT
+// ============================================================
+loadState();
+updateCounts();
+renderVault();
+</script>
+</body>
+</html>
