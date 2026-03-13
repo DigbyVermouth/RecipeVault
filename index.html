@@ -1686,6 +1686,36 @@ const INITIAL_RECIPES = [
       { title: 'Chill', body: 'Refrigerate at least 30 mins before serving — it thickens and flavor deepens. Keeps 1 week in fridge.' }
     ],
     notes: 'Homemade ranch is wildly better than bottled and takes 5 minutes. Staple condiment for all keto/carnivore cooking. Works as a dip, dressing, sauce for cloud bread, burger topping, or chicken marinade. Swap dried herbs if you don\'t have fresh.'
+  },
+  {
+    id: 'r41',
+    title: 'Carnivore Donuts with Cream Cheese Honey Glaze',
+    origin: 'Viral Carnivore TikTok / @itscourtneyluna style',
+    emoji: '🍩',
+    tags: ['carnivore', 'keto', 'high-protein'],
+    macros: { cal: 210, protein: 11, carbs: 5, fat: 16 },
+    servings: 6,
+    ingredients: [
+      { name: 'Eggs', amount: '4 large' },
+      { name: 'Whole milk powder', amount: '½ cup (about 60g)' },
+      { name: 'Baking powder', amount: '1 tsp' },
+      { name: 'Butter (melted)', amount: '2 tbsp' },
+      { name: 'Pinch of salt', amount: 'pinch' },
+      { name: '— GLAZE —', amount: '' },
+      { name: 'Cream cheese (softened)', amount: '3 tbsp (45g)' },
+      { name: 'Honey', amount: '1–2 tsp (to taste)' },
+      { name: 'Heavy cream or milk (to thin)', amount: '1–2 tbsp' }
+    ],
+    prep: [
+      { title: 'Preheat & Prep', body: 'Preheat oven to 175°C (350°F). Grease a standard 6-cavity donut pan well with butter or cooking spray — every crevice.' },
+      { title: 'Mix Batter', body: 'Whisk eggs and melted butter together until combined. Add milk powder, baking powder, and salt. Whisk until smooth — batter will be thin, almost like a crepe batter. This is correct.' },
+      { title: 'Fill Pan', body: 'Pour or spoon batter into each donut cavity, filling about ¾ full. Don\'t overfill or they\'ll puff over the center hole.' },
+      { title: 'Bake', body: 'Bake 15–18 minutes until golden on top and a toothpick comes out clean. The edges will pull away from the pan slightly when done.' },
+      { title: 'Cool', body: 'Let cool in pan 5 minutes, then gently pop out onto a wire rack. Cool another 10 minutes before glazing — glazing while hot makes it run off.' },
+      { title: 'Make Glaze', body: 'Beat softened cream cheese until smooth. Add honey and mix. Add heavy cream 1 tsp at a time until it reaches a thick but drizzleable consistency — like a loose frosting.' },
+      { title: 'Glaze & Serve', body: 'Spoon or drizzle glaze over cooled donuts. Let set 5 minutes. The glaze firms up slightly as it sits. Best eaten same day, but store covered in fridge up to 3 days.' }
+    ],
+    notes: 'The milk powder is the key ingredient — it gives that subtle sweetness and dairy richness without adding flour or sugar. Batter is intentionally thin; don\'t add more powder to thicken it.\n\nVARIATIONS:\n• Add ½ tsp vanilla to batter for more dessert flavor\n• Add ½ tsp cinnamon to batter for a cinnamon cake donut vibe\n• Glaze with just butter + a touch of honey (no cream cheese) for a simpler finish\n• Dust with cinnamon "sugar" made from sweetener + cinnamon after glazing\n• Add a few drops of vanilla extract to the glaze\n\nIf you don\'t have a donut pan: use a muffin tin and press a ball of foil in the center of each cup to create the hole shape.'
   }
 ];
 
@@ -1729,7 +1759,7 @@ function loadState() {
 let currentFilter = 'all';
 const SALAD_IDS = ['r14','r15','r16','r17','r18','r19','r20','r31'];
 const BREAD_IDS = ['r2','r13','r21','r22','r23','r38','r39'];
-const SWEET_IDS = ['r1','r3','r10','r11','r24','r40'];
+const SWEET_IDS = ['r1','r3','r10','r11','r24','r40','r41'];
 
 function setFilter(f, btn) {
   currentFilter = f;
